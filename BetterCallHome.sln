@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastru
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domin", "Domin\Domin.csproj", "{F4DF922D-A054-4DB6-9DDF-0544E30576E1}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", "{B2A74712-BDE6-4894-8A1F-636785BEFB0A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Services", "Services\Services.csproj", "{F1030C4B-EF5C-4887-BF10-03FEC98DF5E2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{F4DF922D-A054-4DB6-9DDF-0544E30576E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F4DF922D-A054-4DB6-9DDF-0544E30576E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F4DF922D-A054-4DB6-9DDF-0544E30576E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2A74712-BDE6-4894-8A1F-636785BEFB0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2A74712-BDE6-4894-8A1F-636785BEFB0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2A74712-BDE6-4894-8A1F-636785BEFB0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2A74712-BDE6-4894-8A1F-636785BEFB0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1030C4B-EF5C-4887-BF10-03FEC98DF5E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1030C4B-EF5C-4887-BF10-03FEC98DF5E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1030C4B-EF5C-4887-BF10-03FEC98DF5E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1030C4B-EF5C-4887-BF10-03FEC98DF5E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,17 +1,20 @@
-﻿using Infrastructure.CustomValidation;
+﻿using Core.Bases;
+using Core.Features.Users.Commands.Results;
+using Infrastructure.CustomValidation;
+using MediatR;
 using System.ComponentModel.DataAnnotations;
 
-namespace Infrastructure.DTO
+namespace Core.Features.Users.Commands.Models
 {
-    public class UserDTO
+    public class RegisterUserCommand : IRequest<Response<UserResponse>>
     {
+
         [Required]
         [MinLength(3)]
         [MaxLength(100)]
         public string UserName { get; set; }
 
         [Required]
-        [StringLength(11)]
         [PhoneValidation]
         public string Phone { get; set; }
 
@@ -23,12 +26,12 @@ namespace Infrastructure.DTO
         [AgeValidation]
         public int Age { get; set; }
 
-        [Required]
+
         [MinLength(2)]
         [MaxLength(100)]
         public string? College { get; set; }
 
-        [Required]
+
         [MinLength(2)]
         [MaxLength(100)]
         public string? University { get; set; }
@@ -36,14 +39,17 @@ namespace Infrastructure.DTO
         [Required]
         public string Gender { get; set; }
 
-        public string Message { get; set; }
+        [Required]
+        [DataType(DataType.Password)]
+        [MinLength(6)]
+        [MaxLength(255)]
+        public string Password { get; set; }
 
-        public bool IsAuthenticated { get; set; }
-
-        public List<string> Roles { get; set; }
-
-        public string Token { get; set; }
-
-        public DateTime Expier { get; set; }
+        [Required]
+        [DataType(DataType.Password)]
+        [Compare("Password")]
+        [MinLength(6)]
+        [MaxLength(255)]
+        public string ConfirmPassword { get; set; }
     }
 }

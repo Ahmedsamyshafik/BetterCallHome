@@ -1,17 +1,19 @@
-﻿using Domin.Constant;
+﻿using AutoMapper;
+using Domin.Constant;
 using Domin.Models;
 using Domin.ViewModel;
 using Infrastructure.DTO;
-using Infrastructure.IRepo;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Services.Abstracts;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace Infrastructure.Repo
+namespace Services.Implementations
 {
     public class AuthService : IAuthService
     {
@@ -19,12 +21,15 @@ namespace Infrastructure.Repo
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
         private readonly IMailService _mailService;
+        private readonly IMapper _mapper;
 
-        public AuthService(UserManager<ApplicationUser> userManager, IConfiguration configuration, IMailService mailService)
+        public AuthService(UserManager<ApplicationUser> userManager, IConfiguration configuration, IMailService mailService,
+            IMapper mapper)
         {
             _userManager = userManager;
             _configuration = configuration;
             _mailService = mailService;
+            _mapper = mapper;
         }
         #endregion
 
@@ -36,18 +41,11 @@ namespace Infrastructure.Repo
             { // User with same email
                 return new UserDTO { Message = "Email Or Name is Already Registered" };
             }
-            var user = new ApplicationUser
-            {
-                UserName = model.UserName,
-                Email = model.Email,
-                PhoneNumber = model.Phone,
-                Age = model.Age,
-                College = model.Colleage,
-                University = model.University,
-                Gender = model.Gender
-
-            };
+            //maping from RegisterDTO to ApplicationUser
+            var user = _mapper.Map<ApplicationUser>(model);
+            //Create User  
             var result = await _userManager.CreateAsync(user, model.Password);
+            // Complete Comment and mapping
             if (!result.Succeeded)
             {
                 var Es = string.Empty;
@@ -62,23 +60,29 @@ namespace Infrastructure.Repo
             var encodedEmailToken = Encoding.UTF8.GetBytes(confirmEmailToken);
             var validEmailToken = WebEncoders.Base64UrlEncode(encodedEmailToken);
             string url = $"{_configuration["Website:AppUrl"]}" + $"api/Account/confirmemailForBackEnd?userid={user.Id}&token={validEmailToken}";
-            SendConfirmEmail(user.Email, url);
+            SendConfirmEmail(user.Email, url);//Error?
             await _userManager.AddToRoleAsync(user, Constants.UserRole);
             var JwtSecuirtyToken = await CreateJwtToken(user);
-            return new UserDTO
-            {
-                Email = user.Email,
-                Expier = JwtSecuirtyToken.ValidTo,
-                IsAuthenticated = true,
-                Roles = new List<string> { Constants.UserRole },
-                Token = new JwtSecurityTokenHandler().WriteToken(JwtSecuirtyToken),
-                UserName = user.UserName,
-                Phone = model.Phone,
-                Age = model.Age,
-                Colleage = model.Colleage,
-                University = model.University,
-                Gender = model.Gender
-            };
+            var res = _mapper.Map<UserDTO>(user);
+            res.Expier = JwtSecuirtyToken.ValidTo;
+            res.Roles = new List<string> { Constants.UserRole };
+            res.Token = new JwtSecurityTokenHandler().WriteToken(JwtSecuirtyToken);
+            return res;
+
+            //return new UserDTO
+            //{
+            //    Email = user.Email,
+            //    Expier = JwtSecuirtyToken.ValidTo,
+            //    IsAuthenticated = true,
+            //    Roles = new List<string> { Constants.UserRole },
+            //    Token = new JwtSecurityTokenHandler().WriteToken(JwtSecuirtyToken),
+            //    UserName = user.UserName,
+            //    Phone = model.Phone,
+            //    Age = model.Age,
+            //    Colleage = model.College,
+            //    University = model.University,
+            //    Gender = model.Gender
+            //};
         }
 
         private async Task<JwtSecurityToken> CreateJwtToken(ApplicationUser user)
@@ -132,20 +136,25 @@ namespace Infrastructure.Repo
             var JwtSecuirtyToken = await CreateJwtToken(user);
             var roles = await _userManager.GetRolesAsync(user);
 
-            returnedUser.Email = user.Email;
-            returnedUser.UserName = user.UserName;
-            returnedUser.Gender = user.Gender;
-            returnedUser.Age = user.Age;
-            returnedUser.Colleage = user.College;
-            returnedUser.University = user.University;
-            returnedUser.Phone = user.PhoneNumber;
-            returnedUser.Roles = roles.ToList();
-            returnedUser.IsAuthenticated = true;
-            returnedUser.Expier = JwtSecuirtyToken.ValidTo;
-            returnedUser.IsAuthenticated = true;
-            returnedUser.Token = new JwtSecurityTokenHandler().WriteToken(JwtSecuirtyToken);
+            var returned = _mapper.Map<UserDTO>(user);
+            returned.Roles = roles.ToList();
+            returned.IsAuthenticated = true;
+            returned.Expier = JwtSecuirtyToken.ValidTo;
+            returned.Token = new JwtSecurityTokenHandler().WriteToken(JwtSecuirtyToken);
 
-            return returnedUser;
+            //returnedUser.Email = user.Email;
+            //returnedUser.UserName = user.UserName;
+            //returnedUser.Gender = user.Gender;
+            //returnedUser.Age = user.Age;
+            //returnedUser.Colleage = user.College;
+            //returnedUser.University = user.University;
+            //returnedUser.Phone = user.PhoneNumber;
+            //returnedUser.Roles = roles.ToList();
+            //returnedUser.IsAuthenticated = true;
+            //returnedUser.Expier = JwtSecuirtyToken.ValidTo;
+            //returnedUser.Token = new JwtSecurityTokenHandler().WriteToken(JwtSecuirtyToken);
+
+            return returned;
         }
 
         public async Task<UserDTO> LoginForAdmin(LoginDTO model)
@@ -282,7 +291,7 @@ namespace Infrastructure.Repo
             var encodedToken = Encoding.UTF8.GetBytes(token);
             var validToken = WebEncoders.Base64UrlEncode(encodedToken);
             //-- Here Front URL
-            string url = $"{_configuration["Website:AppUrl"]}" + $"ResetPasswordFromEmailForBackEnd?email={email}&token={validToken}";
+            string url = $"{_configuration["Website:AppUrl"]}" + $"ForgetPassword?email={email}&token={validToken}";
             SendResetPassword(email, url); // Send Email ! 
             return new UserManagerResponseDTO
             {
@@ -290,6 +299,8 @@ namespace Infrastructure.Repo
                 Message = "Reset password url has been sent"
             };
         }
+
+
         // Controller  -- Resiting
         public async Task<UserManagerResponseDTO> ResetPasswordForEmail(ReserPasswordVM model)
         {

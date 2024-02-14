@@ -1,91 +1,57 @@
 ﻿
-using Domin.Models;
+using BetterCallHomeWeb.Base;
+using Core.Features.Users.Commands.Models;
 using Domin.ViewModel;
 using Google.Apis.Auth;
-using Infrastructure.DTO;
-using Infrastructure.IRepo;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Services.Abstracts;
 
 namespace BetterCallHomeWeb.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AccountController : ControllerBase
+    public class AccountController : AppControllerBase
     {
         #region inJect
         private readonly IAuthService _auth;
         private readonly IConfiguration _configuration;
-        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AccountController(IAuthService auth, IConfiguration configuration, UserManager<ApplicationUser> userManager)
+        public AccountController(IAuthService auth, IConfiguration configuration)
         {
             _auth = auth;
             _configuration = configuration;
-            _userManager = userManager;
+
         }
         #endregion
-        //UserDto
-
-        // Filteration for DTO !!  Done 
 
         [HttpPost("[action]")]
-        public async Task<IActionResult> Register([FromBody] RegisterDTO model)
+        public async Task<IActionResult> Register([FromBody] RegisterUserCommand command)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            var result = await _auth.RegisterAsync(model);
-            if (!result.IsAuthenticated)
-            {
-                return BadRequest(result.Message);
-            }
-
-
-            return Ok(result);
-        }
-        //UserDto
-        [HttpPost("[action]")]
-        public async Task<IActionResult> Login([FromBody] LoginDTO model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            var result = await _auth.Login(model);
-            if (!result.IsAuthenticated)
-            {
-                return BadRequest(result.Message);
-            }
-            return Ok(result);
-        }
-
-        [HttpPost("[action]")]
-        public async Task<IActionResult> LoginForAdmins([FromBody] LoginDTO model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            var result = await _auth.LoginForAdmin(model);
-
-            if (!result.IsAuthenticated) { return BadRequest(result.Message); }
-            return Ok(result);
+            var response = await Mediator.Send(command);
+            return NewResult(response);
         }
         [HttpPost("[action]")]
-        public async Task<IActionResult> LoginForOwners([FromBody] LoginDTO model)
+        public async Task<IActionResult> Login([FromBody] LoginUserCommand command)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            var result = await _auth.LoginForOwners(model);
-            if (!result.IsAuthenticated) { return BadRequest(result.Message); }
-            return Ok(result);
+            var response = await Mediator.Send(command);
+            return NewResult(response);
         }
 
-        // 404/ Redirect
+        //Areas?
+        [HttpPost("[action]")]
+        public async Task<IActionResult> LoginForOwner([FromBody] LoginUserOwnerCommand model)
+        {
+            var response = await Mediator.Send(model);
+            return NewResult(response);
+
+        }
+        [HttpPost("[action]")]
+        public async Task<IActionResult> LoginForAdmins([FromBody] LoginUserAdminCommand model)
+        {
+            var response = await Mediator.Send(model);
+            return NewResult(response);
+
+        }
         // For me not FrontEnd !! 
         [HttpGet("[action]")]          //confirmemailForBackEnd
         public async Task<IActionResult> confirmemailForBackEnd([FromQuery] string userid, [FromQuery] string token)
@@ -99,26 +65,23 @@ namespace BetterCallHomeWeb.Controllers
                 return Redirect($"{_configuration["AppUrl"]}/ConfirmEmail.html");
             }
             return BadRequest(result);
-
         }
+
         //404//UserMangerResponse{message}
         [HttpPost("[action]")]
-        public async Task<IActionResult> ForgetPassword(string email)
+        public async Task<IActionResult> ForgetPassword(ChangePasswordUserCommand command) // Send Email
         {
-            if (string.IsNullOrEmpty(email))
-                return NotFound();
-            var result = await _auth.ForgetPassword(email);
-            if (result.IsSuccess)
-            {
-                return Ok(result.Message);
-            }
-            return BadRequest(result.Message);
+            var response = await Mediator.Send(command);
+            return NewResult(response);
+
         }
+
         //From Email!!
-        ////404//UserMangerResponse{message} ?? Redirct From Email!
+        ////?? Redirct From  page ForgetPassword !
         [HttpPost("[action]")]
         public async Task<IActionResult> ResetPasswordFromEmailForBackEnd([FromForm] ReserPasswordVM model)
         {
+
             if (ModelState.IsValid)
             {
 
@@ -132,27 +95,12 @@ namespace BetterCallHomeWeb.Controllers
             return BadRequest("Some Properties are not valid :(");
         }
 
-        // Normal Reset Password..! 
+        //// Normal Reset Password..! 
         [HttpPost("[action]")]
-        public async Task<IActionResult> ResetPassword(ResetPasswordDTO reset)
+        public async Task<IActionResult> ResetPassword(ResetPasswordUserCommand command)
         {
-            if (ModelState.IsValid)
-            {
-
-                var result = await _auth.ResetPassword(reset);
-                if (result.IsSuccess)
-                {
-                    return Ok(result.Message);
-                }
-                else
-                {
-                    return BadRequest(result.Message);
-                }
-            }
-            else
-            {
-                return BadRequest();
-            }
+            var response = await Mediator.Send(command);
+            return NewResult(response);
         }
 
         //Google+FaceBook!
@@ -178,10 +126,10 @@ namespace BetterCallHomeWeb.Controllers
         }
 
         //[HttpGet("[action]")]
-        //public IActionResult JustTest(string _name)
+        //public IActionResult JustTest()
         //{
-        // Anoynmous object replacing of DTO
-        //    return Ok(new { name = _name, age = 12 });
+        //    //  Anoynmous object replacing of DTO
+        //    return Ok(new { name = "ahmed", age = 22 });
         //}
 
 

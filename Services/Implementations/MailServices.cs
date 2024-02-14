@@ -1,14 +1,14 @@
 ﻿using Domin.Models;
 using Infrastructure.DTO;
-using Infrastructure.IRepo;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
 using MimeKit.Text;
+using Services.Abstracts;
 using System.Text;
 
-namespace Infrastructure.Repo
+namespace Services.Implementations
 {
     public class MailService : IMailService
     {
@@ -25,7 +25,7 @@ namespace Infrastructure.Repo
         }
         #endregion
 
-
+        #region Functions
 
         public async Task<UserManagerResponseDTO> ConfirmEmail(string userId, string token)
         {
@@ -90,6 +90,8 @@ namespace Infrastructure.Repo
             smtp.Send(email);
             smtp.Disconnect(true);
         }
+        #endregion
+
 
     }
 }

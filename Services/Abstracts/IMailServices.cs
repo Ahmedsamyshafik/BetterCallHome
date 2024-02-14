@@ -1,6 +1,6 @@
 ﻿using Infrastructure.DTO;
 
-namespace Infrastructure.IRepo
+namespace Services.Abstracts
 {
     public interface IMailService
     {

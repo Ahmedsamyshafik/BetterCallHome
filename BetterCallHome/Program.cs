@@ -1,18 +1,16 @@
+using Core;
 using Domin.Models;
 using Domin.Seeding;
 using Infrastructure.Data;
-using Infrastructure.IRepo;
-using Infrastructure.Repo;
+using Infrastructure.GenericRepository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System;
+using Services.Abstracts;
+using Services.Implementations;
 using System.Text;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,7 +67,7 @@ builder.Services.AddSwaggerGen(swagger =>
 //builder.Services.AddMvc();
 
 //----Context + Identity + Authentication + Email
-#region
+#region Context + Identity + Authentication + Email
 
 builder.Services.AddDbContext<AppDbContext>(
     o => o.UseSqlServer(builder.Configuration.GetConnectionString("defualtConnection"))
@@ -96,7 +94,7 @@ builder.Services.AddAuthentication().AddGoogle(googleOptions =>
 });
 #endregion
 //----- JWT + Cros
-#region 
+#region JWT + Cros
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -128,8 +126,15 @@ builder.Services.AddCors(corsOptions =>
 #endregion
 
 //---- Repo Services
+#region Repo Inject
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMailService, MailService>();
+builder.Services.AddTransient(typeof(IGenericRepositoryAsync<>), typeof(GenericRepositoryAsync<>));
+builder.Services.AddCoreDependencies();
+#endregion
+
+
 
 //--- Razor Page
 builder.Services.AddRazorPages();
@@ -154,7 +159,7 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 
-app.UseCors("MyPolicy"); // ?
+app.UseCors("MyPolicy"); // ? To enable front end to acces apis
 //app.UseMvc(); //?
 app.MapRazorPages();
 app.MapControllers();

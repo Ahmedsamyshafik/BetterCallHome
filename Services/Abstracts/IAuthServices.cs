@@ -1,15 +1,11 @@
 ﻿using Domin.ViewModel;
 using Infrastructure.DTO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Infrastructure.IRepo
+namespace Services.Abstracts
 {
     public interface IAuthService
     {
+
         Task<UserDTO> RegisterAsync(RegisterDTO model);
         Task<UserDTO> Login(LoginDTO model);
         Task<UserManagerResponseDTO> ConfirmEmail(string userId, string token);
