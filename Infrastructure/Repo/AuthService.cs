@@ -1,22 +1,15 @@
-﻿using Domin.Models;
+﻿using Domin.Constant;
+using Domin.Models;
+using Domin.ViewModel;
 using Infrastructure.DTO;
 using Infrastructure.IRepo;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using sib_api_v3_sdk.Api;
-using sib_api_v3_sdk.Client;
-using sib_api_v3_sdk.Model;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using MimeKit;
-using MimeKit.Text;
-using Domin.ViewModel;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Newtonsoft.Json.Linq;
-using Domin.Constant;
 
 namespace Infrastructure.Repo
 {
@@ -25,11 +18,13 @@ namespace Infrastructure.Repo
         #region InJect
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly IMailService _mailService;
 
-        public AuthService(UserManager<ApplicationUser> userManager, IConfiguration configuration)
+        public AuthService(UserManager<ApplicationUser> userManager, IConfiguration configuration, IMailService mailService)
         {
             _userManager = userManager;
             _configuration = configuration;
+            _mailService = mailService;
         }
         #endregion
 
@@ -66,7 +61,7 @@ namespace Infrastructure.Repo
             var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var encodedEmailToken = Encoding.UTF8.GetBytes(confirmEmailToken);
             var validEmailToken = WebEncoders.Base64UrlEncode(encodedEmailToken);
-            string url = $"{_configuration["AppUrl"]}" + $"api/Account/confirmemail?userid={user.Id}&token={validEmailToken}";
+            string url = $"{_configuration["Website:AppUrl"]}" + $"api/Account/confirmemailForBackEnd?userid={user.Id}&token={validEmailToken}";
             SendConfirmEmail(user.Email, url);
             await _userManager.AddToRoleAsync(user, Constants.UserRole);
             var JwtSecuirtyToken = await CreateJwtToken(user);
@@ -167,7 +162,7 @@ namespace Infrastructure.Repo
             var roles = await _userManager.GetRolesAsync(user);
             if (roles.Contains(Constants.AdminRole))
             {
-              return await Login(model);
+                return await Login(model);
             }
             else
             {
@@ -186,7 +181,7 @@ namespace Infrastructure.Repo
             {
                 returnedUser.Message = "Name Or Password is invalid..!";
                 var r = await _userManager.CheckPasswordAsync(user, model.Password);
-               
+
                 returnedUser.Email = model.Email;
                 return returnedUser;
             }
@@ -209,48 +204,61 @@ namespace Infrastructure.Repo
 
         public async Task<UserManagerResponseDTO> ConfirmEmail(string userId, string token)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                return new UserManagerResponseDTO
-                {
-                    IsSuccess = false,
-                    Message = "User not found"
-                };
-            //Decoding Token
-            var decodedToken = WebEncoders.Base64UrlDecode(token);
-            string normalToken = Encoding.UTF8.GetString(decodedToken);
-            // Success Confirm
-            var result = await _userManager.ConfirmEmailAsync(user, normalToken);
-            if (result.Succeeded)
-                return new UserManagerResponseDTO
-                {
-                    Message = "Email confirmed successfully!",
-                    IsSuccess = true,
-                };
-            // Invaild Confirm
-            return new UserManagerResponseDTO
-            {
-                IsSuccess = false,
-                Message = "Email did not confirm",
-                Errors = result.Errors.Select(e => e.Description)
-            };
+            var result = await _mailService.ConfirmEmail(userId, token);
+            return result;
+
+            #region Applying Single Responsibility Principle..  
+            ////  var user = await _userManager.FindByIdAsync(userId);
+            ////  if (user == null)
+            ////      return new UserManagerResponseDTO
+            ////      {
+            ////          IsSuccess = false,
+            ////          Message = "User not found"
+            ////      };
+            ////  //Decoding Token
+            ////  var decodedToken = WebEncoders.Base64UrlDecode(token);
+            ////  string normalToken = Encoding.UTF8.GetString(decodedToken);
+            ////  // Success Confirm
+            ////  var result = await _userManager.ConfirmEmailAsync(user, normalToken);
+            //  if (result.Succeeded)
+            //      return new UserManagerResponseDTO
+            //      {
+            //          Message = "Email confirmed successfully!",
+            //          IsSuccess = true,
+            //      };
+            //  // Invaild Confirm
+            //  return new UserManagerResponseDTO
+            //  {
+            //      IsSuccess = false,
+            //      Message = "Email did not confirm",
+            //      Errors = result.Errors.Select(e => e.Description)
+            //  };
+            #endregion 
+
 
         }
 
         private void SendConfirmEmail(string EmailSentTo, string url)
         {
-            var email = new MimeMessage();
-            email.From.Add(new MailboxAddress(_configuration["WebSite:FromName"], _configuration["WebSite:FromEmail"]));
-            email.To.Add(MailboxAddress.Parse(EmailSentTo));
-            email.Subject = "Account Confirm";
-            var htmlPage = $"<h1>Confirm your email</h1><p>Please confirm your email by <a href='{url}'>Clicking here</a></p>";
-            email.Body = new TextPart(TextFormat.Html) { Text = htmlPage };
-            using var smtp = new MailKit.Net.Smtp.SmtpClient();
-            smtp.Connect("smtp.gmail.com", 465, true);
 
-            smtp.Authenticate(userName: _configuration["WebSite:FromEmail"], password: _configuration["WebSite:Password"]);
-            smtp.Send(email);
-            smtp.Disconnect(true);
+            _mailService.SendConfirmEmail(EmailSentTo, url);
+
+            #region Applying Single Responsibility Principle..  
+
+            //var email = new MimeMessage();
+            //email.From.Add(new MailboxAddress(_configuration["WebSite:FromName"], _configuration["WebSite:FromEmail"]));
+            //email.To.Add(MailboxAddress.Parse(EmailSentTo));
+            //email.Subject = "Account Confirm";
+            //var htmlPage = $"<h1>Confirm your email</h1><p>Please confirm your email by <a href='{url}'>Clicking here</a></p>";
+            //email.Body = new TextPart(TextFormat.Html) { Text = htmlPage };
+            //using var smtp = new MailKit.Net.Smtp.SmtpClient();
+            //smtp.Connect("smtp.gmail.com", 465, true);
+
+            //smtp.Authenticate(userName: _configuration["WebSite:FromEmail"], password: _configuration["WebSite:Password"]);
+            //smtp.Send(email);
+            //smtp.Disconnect(true);
+            #endregion
+
         }
 
         #endregion
@@ -274,7 +282,7 @@ namespace Infrastructure.Repo
             var encodedToken = Encoding.UTF8.GetBytes(token);
             var validToken = WebEncoders.Base64UrlEncode(encodedToken);
             //-- Here Front URL
-            string url = $"{_configuration["Website:AppUrl"]}" + $"ResetPasswordFromEmail?email={email}&token={validToken}";
+            string url = $"{_configuration["Website:AppUrl"]}" + $"ResetPasswordFromEmailForBackEnd?email={email}&token={validToken}";
             SendResetPassword(email, url); // Send Email ! 
             return new UserManagerResponseDTO
             {
@@ -314,18 +322,25 @@ namespace Infrastructure.Repo
 
         private void SendResetPassword(string EmailSentTo, string url)
         {
-            var email = new MimeMessage();
-            email.From.Add(new MailboxAddress(_configuration["WebSite:FromName"], _configuration["WebSite:FromEmail"]));
-            email.To.Add(MailboxAddress.Parse(EmailSentTo));
-            email.Subject = "Account Confirm";
-            var htmlPage = $"<h1>Reset Password</h1><p>Reset your password by <a href='{url}'>Clicking here</a></p>";
-            email.Body = new TextPart(TextFormat.Html) { Text = htmlPage };
-            using var smtp = new MailKit.Net.Smtp.SmtpClient();
-            smtp.Connect("smtp.gmail.com", 465, true);
 
-            smtp.Authenticate(userName: _configuration["WebSite:FromEmail"], _configuration["WebSite:Password"]);
-            smtp.Send(email);
-            smtp.Disconnect(true);
+            _mailService.SendResetPassword(EmailSentTo, url);
+
+
+            #region Applying Single Responsibility Principle..  
+            //var email = new MimeMessage();
+            //email.From.Add(new MailboxAddress(_configuration["WebSite:FromName"], _configuration["WebSite:FromEmail"]));
+            //email.To.Add(MailboxAddress.Parse(EmailSentTo));
+            //email.Subject = "Account Confirm";
+            //var htmlPage = $"<h1>Reset Password</h1><p>Reset your password by <a href='{url}'>Clicking here</a></p>";
+            //email.Body = new TextPart(TextFormat.Html) { Text = htmlPage };
+            //using var smtp = new MailKit.Net.Smtp.SmtpClient();
+            //smtp.Connect("smtp.gmail.com", 465, true);
+
+            //smtp.Authenticate(userName: _configuration["WebSite:FromEmail"], _configuration["WebSite:Password"]);
+            //smtp.Send(email);
+            //smtp.Disconnect(true);
+            #endregion
+
         }
 
 
@@ -342,11 +357,11 @@ namespace Infrastructure.Repo
                 };
             }
             // Confirm!=New
-            if (model.NewPassword != model.ConfirmPassword) return new UserManagerResponseDTO(){ IsSuccess = false, Message = "Confirm Password dose not match New Password..!" };
-            var result = await _userManager.ChangePasswordAsync(user, model.OldPassword,model.NewPassword);
+            if (model.NewPassword != model.ConfirmPassword) return new UserManagerResponseDTO() { IsSuccess = false, Message = "Confirm Password dose not match New Password..!" };
+            var result = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
             if (result.Succeeded)
             {
-                return new UserManagerResponseDTO() { IsSuccess=true , Message ="Password Updated Successfuily"};
+                return new UserManagerResponseDTO() { IsSuccess = true, Message = "Password Updated Successfuily" };
             }
             else
             {
@@ -354,7 +369,7 @@ namespace Infrastructure.Repo
                 var errors = result.Errors.Select(e => e.Description).ToArray();
                 if (errors.Length > 0)
                 {
-                    errorMessage = string.Join(", ", errors);  
+                    errorMessage = string.Join(", ", errors);
                 }
                 return new UserManagerResponseDTO()
                 {

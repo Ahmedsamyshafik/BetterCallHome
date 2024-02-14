@@ -1,16 +1,11 @@
 ﻿
-using Infrastructure.DTO;
-using Infrastructure.IRepo;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using Domin.Models;
 using Domin.ViewModel;
 using Google.Apis.Auth;
+using Infrastructure.DTO;
+using Infrastructure.IRepo;
 using Microsoft.AspNetCore.Identity;
-using Domin.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BetterCallHomeWeb.Controllers
 {
@@ -23,14 +18,16 @@ namespace BetterCallHomeWeb.Controllers
         private readonly IConfiguration _configuration;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public AccountController(IAuthService auth, IConfiguration configuration ,UserManager<ApplicationUser> userManager)
+        public AccountController(IAuthService auth, IConfiguration configuration, UserManager<ApplicationUser> userManager)
         {
             _auth = auth;
             _configuration = configuration;
-           _userManager = userManager;
+            _userManager = userManager;
         }
         #endregion
         //UserDto
+
+        // Filteration for DTO !!  Done 
 
         [HttpPost("[action]")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO model)
@@ -72,8 +69,8 @@ namespace BetterCallHomeWeb.Controllers
                 return BadRequest(ModelState);
             }
             var result = await _auth.LoginForAdmin(model);
-            
-            if(!result.IsAuthenticated) { return BadRequest(result.Message); }
+
+            if (!result.IsAuthenticated) { return BadRequest(result.Message); }
             return Ok(result);
         }
         [HttpPost("[action]")]
@@ -84,13 +81,14 @@ namespace BetterCallHomeWeb.Controllers
                 return BadRequest(ModelState);
             }
             var result = await _auth.LoginForOwners(model);
-            if(!result.IsAuthenticated) { return BadRequest(result.Message); }
+            if (!result.IsAuthenticated) { return BadRequest(result.Message); }
             return Ok(result);
         }
 
         // 404/ Redirect
-        [HttpGet("[action]")] 
-        public async Task<IActionResult> confirmemail([FromQuery] string userid, [FromQuery] string token)
+        // For me not FrontEnd !! 
+        [HttpGet("[action]")]          //confirmemailForBackEnd
+        public async Task<IActionResult> confirmemailForBackEnd([FromQuery] string userid, [FromQuery] string token)
         {
             if (string.IsNullOrWhiteSpace(userid) || string.IsNullOrWhiteSpace(token))
                 return NotFound();
@@ -104,12 +102,12 @@ namespace BetterCallHomeWeb.Controllers
 
         }
         //404//UserMangerResponse{message}
-        [HttpPost("[action]")] 
+        [HttpPost("[action]")]
         public async Task<IActionResult> ForgetPassword(string email)
         {
             if (string.IsNullOrEmpty(email))
                 return NotFound();
-            var result=await _auth.ForgetPassword(email);
+            var result = await _auth.ForgetPassword(email);
             if (result.IsSuccess)
             {
                 return Ok(result.Message);
@@ -119,12 +117,12 @@ namespace BetterCallHomeWeb.Controllers
         //From Email!!
         ////404//UserMangerResponse{message} ?? Redirct From Email!
         [HttpPost("[action]")]
-        public async Task<IActionResult> ResetPasswordFromEmail([FromForm] ReserPasswordVM model)
+        public async Task<IActionResult> ResetPasswordFromEmailForBackEnd([FromForm] ReserPasswordVM model)
         {
-            if(ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                
-                var result=await _auth.ResetPasswordForEmail(model);
+
+                var result = await _auth.ResetPasswordForEmail(model);
                 if (result.IsSuccess)
                 {
                     return Ok(result.Message);
@@ -140,8 +138,8 @@ namespace BetterCallHomeWeb.Controllers
         {
             if (ModelState.IsValid)
             {
-             
-               var result = await _auth.ResetPassword(reset);
+
+                var result = await _auth.ResetPassword(reset);
                 if (result.IsSuccess)
                 {
                     return Ok(result.Message);
@@ -157,8 +155,8 @@ namespace BetterCallHomeWeb.Controllers
             }
         }
 
-       //Google+FaceBook!
-       [HttpGet("[action]")]
+        //Google+FaceBook!
+        [HttpGet("[action]")]
         public async Task<IActionResult> GoogleLogin(string tok)
         {
             //try catch
@@ -168,16 +166,24 @@ namespace BetterCallHomeWeb.Controllers
             {
                 Audience = new List<string>() { _configuration["authentication:Google:client_id"] }
             };
-           // var d = await JsonWebSignature.VerifySignedTokenAsync(tok);
-           
+            // var d = await JsonWebSignature.VerifySignedTokenAsync(tok);
+
             var payload = await GoogleJsonWebSignature.ValidateAsync(tok, settings);
             // check payload Email?
             var email = payload.Email;
 
-            
+
 
             return Ok();
         }
+
+        //[HttpGet("[action]")]
+        //public IActionResult JustTest(string _name)
+        //{
+        // Anoynmous object replacing of DTO
+        //    return Ok(new { name = _name, age = 12 });
+        //}
+
 
 
     }

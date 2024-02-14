@@ -129,6 +129,7 @@ builder.Services.AddCors(corsOptions =>
 
 //---- Repo Services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IMailService, MailService>();
 
 //--- Razor Page
 builder.Services.AddRazorPages();
