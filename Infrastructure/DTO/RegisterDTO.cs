@@ -1,4 +1,5 @@
-﻿using Infrastructure.CustomValidation;
+﻿
+using Infrastructure.CustomValidation;
 using System.ComponentModel.DataAnnotations;
 
 namespace Infrastructure.DTO

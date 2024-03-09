@@ -2,14 +2,12 @@ using Core;
 using Domin.Models;
 using Domin.Seeding;
 using Infrastructure.Data;
-using Infrastructure.GenericRepository;
+using infrustructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Services.Abstracts;
-using Services.Implementations;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +17,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
+#region Swagger Authentication
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo", Version = "v1" });
@@ -58,6 +58,8 @@ builder.Services.AddSwaggerGen(swagger =>
         }
                 });
 });
+#endregion
+
 
 
 
@@ -127,11 +129,9 @@ builder.Services.AddCors(corsOptions =>
 
 //---- Repo Services
 #region Repo Inject
-
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IMailService, MailService>();
-builder.Services.AddTransient(typeof(IGenericRepositoryAsync<>), typeof(GenericRepositoryAsync<>));
 builder.Services.AddCoreDependencies();
+builder.Services.AddInfrustructureDependencies();
+builder.Services.AddServicesDependencies();
 #endregion
 
 
@@ -142,11 +142,11 @@ builder.Services.AddRazorPages();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//if (app.Environment.IsDevelopment())
+//{
+app.UseSwagger();
+app.UseSwaggerUI();
+//}
 
 app.UseHttpsRedirection();
 

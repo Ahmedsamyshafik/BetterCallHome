@@ -6,7 +6,7 @@ namespace Infrastructure.GenericRepository
 {
     public class GenericRepositoryAsync<T> : IGenericRepositoryAsync<T> where T : class
     {
-         
+
         #region Fields
 
         protected readonly AppDbContext _db;
@@ -22,8 +22,7 @@ namespace Infrastructure.GenericRepository
         #endregion
 
 
-        #region Methods
-        #endregion
+
 
         #region Actions
         public virtual async Task<T> GetByIdAsync(int id)

@@ -3,6 +3,8 @@ using Domin.Constant;
 using Domin.Models;
 using Domin.ViewModel;
 using Infrastructure.DTO;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
@@ -22,14 +24,21 @@ namespace Services.Implementations
         private readonly IConfiguration _configuration;
         private readonly IMailService _mailService;
         private readonly IMapper _mapper;
+        private readonly IGlobalErrorResponse _GlobalError;
+        private readonly IWebHostEnvironment _hostingEnvironment;
+        private readonly IUploadingMedia _media;
+
 
         public AuthService(UserManager<ApplicationUser> userManager, IConfiguration configuration, IMailService mailService,
-            IMapper mapper)
+            IMapper mapper, IGlobalErrorResponse globalError, IWebHostEnvironment hostingEnvironment, IUploadingMedia media)
         {
             _userManager = userManager;
             _configuration = configuration;
             _mailService = mailService;
             _mapper = mapper;
+            _GlobalError = globalError;
+            _hostingEnvironment = hostingEnvironment;
+            _media = media;
         }
         #endregion
 
@@ -62,27 +71,14 @@ namespace Services.Implementations
             string url = $"{_configuration["Website:AppUrl"]}" + $"api/Account/confirmemailForBackEnd?userid={user.Id}&token={validEmailToken}";
             SendConfirmEmail(user.Email, url);//Error?
             await _userManager.AddToRoleAsync(user, Constants.UserRole);
+            //Create JWT
             var JwtSecuirtyToken = await CreateJwtToken(user);
             var res = _mapper.Map<UserDTO>(user);
             res.Expier = JwtSecuirtyToken.ValidTo;
             res.Roles = new List<string> { Constants.UserRole };
             res.Token = new JwtSecurityTokenHandler().WriteToken(JwtSecuirtyToken);
+            res.IsAuthenticated = true;
             return res;
-
-            //return new UserDTO
-            //{
-            //    Email = user.Email,
-            //    Expier = JwtSecuirtyToken.ValidTo,
-            //    IsAuthenticated = true,
-            //    Roles = new List<string> { Constants.UserRole },
-            //    Token = new JwtSecurityTokenHandler().WriteToken(JwtSecuirtyToken),
-            //    UserName = user.UserName,
-            //    Phone = model.Phone,
-            //    Age = model.Age,
-            //    Colleage = model.College,
-            //    University = model.University,
-            //    Gender = model.Gender
-            //};
         }
 
         private async Task<JwtSecurityToken> CreateJwtToken(ApplicationUser user)
@@ -142,18 +138,6 @@ namespace Services.Implementations
             returned.Expier = JwtSecuirtyToken.ValidTo;
             returned.Token = new JwtSecurityTokenHandler().WriteToken(JwtSecuirtyToken);
 
-            //returnedUser.Email = user.Email;
-            //returnedUser.UserName = user.UserName;
-            //returnedUser.Gender = user.Gender;
-            //returnedUser.Age = user.Age;
-            //returnedUser.Colleage = user.College;
-            //returnedUser.University = user.University;
-            //returnedUser.Phone = user.PhoneNumber;
-            //returnedUser.Roles = roles.ToList();
-            //returnedUser.IsAuthenticated = true;
-            //returnedUser.Expier = JwtSecuirtyToken.ValidTo;
-            //returnedUser.Token = new JwtSecurityTokenHandler().WriteToken(JwtSecuirtyToken);
-
             return returned;
         }
 
@@ -206,6 +190,39 @@ namespace Services.Implementations
                 returnedUser.Email = model.Email;
                 return returnedUser;
             }
+        }
+        #endregion
+
+        #region Services
+
+        public bool NameIsExist(string name, string email)
+        {
+            var listofUsers = _userManager.Users.AsQueryable().Where(x => x.UserName == name && x.Email != email);
+            if (listofUsers.Any()) return true;
+            return false;
+        }
+
+        public async Task<string> UpdateStudentandOwnerProfile(ApplicationUser user, IFormFile? img)
+        {
+            var realUser = await _userManager.FindByEmailAsync(user.Email);
+            if (realUser == null) return "No Account with This Email!";
+            //check image
+            if (img != null)
+            {
+                var returned = await _media.UploadFileAsync(img, Constants.EditProfilePicture);
+                realUser.imagePath = returned.Path;
+            }
+            //Name? Falidation about name here?
+            var ExistOrNot = NameIsExist(user.UserName, user.Email);
+            if (ExistOrNot) return "Exist Name Already!";
+            //adding all info
+            realUser.UserName = user.UserName;
+            realUser.PhoneNumber = user.PhoneNumber;
+            //update
+            var result = await _userManager.UpdateAsync(realUser);
+            //return
+            if (result.Succeeded) return "Success";
+            return _GlobalError.ErrorCode(result);
         }
         #endregion
 
@@ -376,6 +393,7 @@ namespace Services.Implementations
             }
             else
             {
+                // Global Errors
                 string errorMessage = "";
                 var errors = result.Errors.Select(e => e.Description).ToArray();
                 if (errors.Length > 0)
@@ -386,10 +404,14 @@ namespace Services.Implementations
                 {
                     IsSuccess = false,
                     Errors = result.Errors.Select(e => e.Description).ToArray(),
-                    Message = $"thier are errors=> {errorMessage}",
+                    Message = $" errors=> {errorMessage}",
                 };
             }
         }
+
+
+
+
         #endregion
     }
 }

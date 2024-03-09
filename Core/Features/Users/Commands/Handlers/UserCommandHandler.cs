@@ -2,6 +2,7 @@
 using Core.Bases;
 using Core.Features.Users.Commands.Models;
 using Core.Features.Users.Commands.Results;
+using Domin.Models;
 using Infrastructure.DTO;
 using MediatR;
 using Services.Abstracts;
@@ -9,29 +10,33 @@ using Services.Abstracts;
 namespace Core.Features.Users.Commands.Handlers
 {
     public class UserCommandHandler : ResponseHandler,
-                    IRequestHandler<RegisterUserCommand, Response<UserResponse>>,
+                    IRequestHandler<RegisterStudentCommand, Response<UserResponse>>,
                     IRequestHandler<LoginUserCommand, Response<UserResponse>>,
                     IRequestHandler<LoginUserAdminCommand, Response<UserResponse>>,
                     IRequestHandler<LoginUserOwnerCommand, Response<UserResponse>>,
                     IRequestHandler<ChangePasswordUserCommand, Response<string>>,
-                    IRequestHandler<ResetPasswordUserCommand, Response<string>>
+                    IRequestHandler<ResetPasswordUserCommand, Response<string>>,
+                    IRequestHandler<EditProfileStudentandOwnerCommand, Response<string>>
     {
 
         #region Inject
 
         private readonly IAuthService _auth;
         private readonly IMapper _mapper;
+       
+
         public UserCommandHandler(IAuthService auth, IMapper mapper)
         {
             _auth = auth;
             _mapper = mapper;
+           
         }
         #endregion
 
 
         #region Handle Function
 
-        public async Task<Response<UserResponse>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
+        public async Task<Response<UserResponse>> Handle(RegisterStudentCommand request, CancellationToken cancellationToken)
         {
             // (mapping)  RegisterUserCommand => RegisterDTO
             var paramater = _mapper.Map<RegisterDTO>(request);
@@ -119,6 +124,19 @@ namespace Core.Features.Users.Commands.Handlers
                 return BadRequest<string>(result.Message);
             }
 
+        }
+
+        public async Task<Response<string>> Handle(EditProfileStudentandOwnerCommand request, CancellationToken cancellationToken)
+        {
+            //map to Application User
+            var mapper = _mapper.Map<ApplicationUser>(request);  // password? oldPassword!! Img
+            //Service To Update 
+            string result = await _auth.UpdateStudentandOwnerProfile(mapper, request.Picture);
+            //testing for image
+            //bool res = await _image.UploadAsync(request.Picture);
+            //check service response 
+            if (result == "Success") return Success("");
+            return BadRequest<string>(result);
         }
 
 

@@ -22,4 +22,11 @@
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\Assets\AccountPics\" />
+    <Folder Include="wwwroot\Assets\ApartmentPics\" />
+    <Folder Include="wwwroot\Assets\ApartmentVids\" />
+    <Folder Include="wwwroot\Assets\RoyalDocPics\" />
+  </ItemGroup>
+
 </Project>

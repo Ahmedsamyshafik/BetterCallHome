@@ -17,7 +17,7 @@ namespace Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.14")
+                .HasAnnotation("ProductVersion", "7.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -31,19 +31,22 @@ namespace Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ApartmentServicesId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
+                    b.Property<int>("ApartmentVideoID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CoverImageName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ImagePath")
-                        .IsRequired()
+                    b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Document")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -52,17 +55,17 @@ namespace Infrastructure.Migrations
                     b.Property<int>("NumberOfUsers")
                         .HasColumnType("int");
 
-                    b.Property<string>("PDF")
+                    b.Property<string>("OwnerId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("Room")
-                        .HasColumnType("int");
+                    b.Property<bool>("Publish")
+                        .HasColumnType("bit");
 
-                    b.Property<int>("UserApartmentId")
+                    b.Property<int>("Room")
                         .HasColumnType("int");
 
                     b.Property<int>("Views")
@@ -70,7 +73,35 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OwnerId");
+
                     b.ToTable("Apartment");
+                });
+
+            modelBuilder.Entity("Domin.Models.ApartmentImages", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApartmentID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImagePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApartmentID");
+
+                    b.ToTable("apartmentImages");
                 });
 
             modelBuilder.Entity("Domin.Models.ApartmentServices", b =>
@@ -96,6 +127,33 @@ namespace Infrastructure.Migrations
                     b.ToTable("ApartmentServices");
                 });
 
+            modelBuilder.Entity("Domin.Models.ApartmentVideo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApartmentID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VideoName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VideoPath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApartmentID")
+                        .IsUnique();
+
+                    b.ToTable("apartmentVideos");
+                });
+
             modelBuilder.Entity("Domin.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -104,16 +162,18 @@ namespace Infrastructure.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
-                    b.Property<int>("Age")
-                        .HasColumnType("int");
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("College")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CurrentLivingInId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -156,17 +216,18 @@ namespace Infrastructure.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("University")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserApartmentId")
-                        .HasColumnType("int");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<string>("imagePath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CurrentLivingInId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -177,6 +238,33 @@ namespace Infrastructure.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Domin.Models.RoyalDocument", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApartmentID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImagePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApartmentID")
+                        .IsUnique();
+
+                    b.ToTable("royalDocuments");
                 });
 
             modelBuilder.Entity("Domin.Models.Service", b =>
@@ -201,33 +289,6 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Service");
-                });
-
-            modelBuilder.Entity("Domin.Models.UserApartment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApartmentId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ApplicationUserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ApplicationUserId1")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApartmentId");
-
-                    b.HasIndex("ApplicationUserId1");
-
-                    b.ToTable("UserApartment");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -363,6 +424,28 @@ namespace Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Domin.Models.Apartment", b =>
+                {
+                    b.HasOne("Domin.Models.ApplicationUser", "Owner")
+                        .WithMany("OwnedApartment")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("Domin.Models.ApartmentImages", b =>
+                {
+                    b.HasOne("Domin.Models.Apartment", "Apartment")
+                        .WithMany()
+                        .HasForeignKey("ApartmentID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Apartment");
+                });
+
             modelBuilder.Entity("Domin.Models.ApartmentServices", b =>
                 {
                     b.HasOne("Domin.Models.Apartment", "Apartment")
@@ -382,23 +465,36 @@ namespace Infrastructure.Migrations
                     b.Navigation("Service");
                 });
 
-            modelBuilder.Entity("Domin.Models.UserApartment", b =>
+            modelBuilder.Entity("Domin.Models.ApartmentVideo", b =>
                 {
                     b.HasOne("Domin.Models.Apartment", "Apartment")
-                        .WithMany("UserApartment")
-                        .HasForeignKey("ApartmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domin.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany("UserApartment")
-                        .HasForeignKey("ApplicationUserId1")
+                        .WithOne("ApartmentVideo")
+                        .HasForeignKey("Domin.Models.ApartmentVideo", "ApartmentID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Apartment");
+                });
 
-                    b.Navigation("ApplicationUser");
+            modelBuilder.Entity("Domin.Models.ApplicationUser", b =>
+                {
+                    b.HasOne("Domin.Models.Apartment", "CurrentLivingIn")
+                        .WithMany("StudentsApartment")
+                        .HasForeignKey("CurrentLivingInId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CurrentLivingIn");
+                });
+
+            modelBuilder.Entity("Domin.Models.RoyalDocument", b =>
+                {
+                    b.HasOne("Domin.Models.Apartment", "Apartment")
+                        .WithOne("RoyalDocument")
+                        .HasForeignKey("Domin.Models.RoyalDocument", "ApartmentID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Apartment");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -456,12 +552,16 @@ namespace Infrastructure.Migrations
                 {
                     b.Navigation("ApartmentServices");
 
-                    b.Navigation("UserApartment");
+                    b.Navigation("ApartmentVideo");
+
+                    b.Navigation("RoyalDocument");
+
+                    b.Navigation("StudentsApartment");
                 });
 
             modelBuilder.Entity("Domin.Models.ApplicationUser", b =>
                 {
-                    b.Navigation("UserApartment");
+                    b.Navigation("OwnedApartment");
                 });
 
             modelBuilder.Entity("Domin.Models.Service", b =>

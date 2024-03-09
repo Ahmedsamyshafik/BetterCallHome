@@ -24,34 +24,49 @@ namespace BetterCallHomeWeb.Controllers
         }
         #endregion
 
+        #region Login-Register
+
         [HttpPost("[action]")]
-        public async Task<IActionResult> Register([FromBody] RegisterUserCommand command)
+        public async Task<IActionResult> Register([FromBody] RegisterStudentCommand command)
         {
             var response = await Mediator.Send(command);
             return NewResult(response);
         }
+
         [HttpPost("[action]")]
         public async Task<IActionResult> Login([FromBody] LoginUserCommand command)
         {
             var response = await Mediator.Send(command);
             return NewResult(response);
         }
+        #endregion
 
-        //Areas?
-        [HttpPost("[action]")]
-        public async Task<IActionResult> LoginForOwner([FromBody] LoginUserOwnerCommand model)
+        #region External Login!
+        //Google+FaceBook!
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GoogleLogin(string tok)
         {
-            var response = await Mediator.Send(model);
-            return NewResult(response);
+            //try catch
 
-        }
-        [HttpPost("[action]")]
-        public async Task<IActionResult> LoginForAdmins([FromBody] LoginUserAdminCommand model)
-        {
-            var response = await Mediator.Send(model);
-            return NewResult(response);
+            var Cid = _configuration["authentication:Google:client_id"];
+            var settings = new GoogleJsonWebSignature.ValidationSettings()
+            {
+                Audience = new List<string>() { _configuration["authentication:Google:client_id"] }
+            };
+            // var d = await JsonWebSignature.VerifySignedTokenAsync(tok);
 
+            var payload = await GoogleJsonWebSignature.ValidateAsync(tok, settings);
+            // check payload Email?
+            var email = payload.Email;
+
+
+
+            return Ok();
         }
+
+        #endregion
+
+        #region Password-Email
         // For me not FrontEnd !! 
         [HttpGet("[action]")]          //confirmemailForBackEnd
         public async Task<IActionResult> confirmemailForBackEnd([FromQuery] string userid, [FromQuery] string token)
@@ -103,34 +118,18 @@ namespace BetterCallHomeWeb.Controllers
             return NewResult(response);
         }
 
-        //Google+FaceBook!
-        [HttpGet("[action]")]
-        public async Task<IActionResult> GoogleLogin(string tok)
+        #endregion
+
+        #region Edit
+        [HttpPost("[action]")]
+        public async Task<IActionResult> EditProfileStudentandOwner([FromForm] EditProfileStudentandOwnerCommand command)
         {
-            //try catch
-
-            var Cid = _configuration["authentication:Google:client_id"];
-            var settings = new GoogleJsonWebSignature.ValidationSettings()
-            {
-                Audience = new List<string>() { _configuration["authentication:Google:client_id"] }
-            };
-            // var d = await JsonWebSignature.VerifySignedTokenAsync(tok);
-
-            var payload = await GoogleJsonWebSignature.ValidateAsync(tok, settings);
-            // check payload Email?
-            var email = payload.Email;
-
-
-
-            return Ok();
+            var response = await Mediator.Send(command);
+            return NewResult(response);
         }
+        #endregion
 
-        //[HttpGet("[action]")]
-        //public IActionResult JustTest()
-        //{
-        //    //  Anoynmous object replacing of DTO
-        //    return Ok(new { name = "ahmed", age = 22 });
-        //}
+
 
 
 

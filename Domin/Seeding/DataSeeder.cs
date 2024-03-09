@@ -2,11 +2,6 @@
 using Domin.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Domin.Seeding
 {
@@ -24,7 +19,7 @@ namespace Domin.Seeding
             };
             foreach (var role in rolesList)
             {
-                var Currenr_Role =  roleManager.FindByNameAsync(role).Result; // await vs result
+                var Currenr_Role = roleManager.FindByNameAsync(role).Result; // await vs result
                 if (Currenr_Role == null)
                 {
                     Currenr_Role = new IdentityRole(role);
@@ -40,15 +35,16 @@ namespace Domin.Seeding
             {
                 adminUser = new ApplicationUser
                 {
-                  //  Id = Guid.NewGuid().ToString(),
+                    //  Id = Guid.NewGuid().ToString(),
                     UserName = "Admin",
                     Email = "Admin@gmail.com",
                     PhoneNumber = "01095385375",
-                    Age = 22,
+                    //Age = 22,
                     College = "CS",
                     University = "DU",
                     Gender = "M",
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    Address = "Domiat"
                 };
 
                 var result = userManager.CreateAsync(adminUser, "Alahly1907#").Result;

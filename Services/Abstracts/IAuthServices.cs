@@ -1,5 +1,7 @@
-﻿using Domin.ViewModel;
+﻿using Domin.Models;
+using Domin.ViewModel;
 using Infrastructure.DTO;
+using Microsoft.AspNetCore.Http;
 
 namespace Services.Abstracts
 {
@@ -14,5 +16,8 @@ namespace Services.Abstracts
         Task<UserManagerResponseDTO> ResetPassword(ResetPasswordDTO model);
         Task<UserDTO> LoginForAdmin(LoginDTO model);
         Task<UserDTO> LoginForOwners(LoginDTO model);
+        bool NameIsExist(string name, string email);
+        Task<string> UpdateStudentandOwnerProfile(ApplicationUser user, IFormFile? img);
+    //    Task<string> UploadAccountPicture(IFormFile img);
     }
 }

@@ -14,6 +14,9 @@ namespace Core.Mapping.UserMapping
             loginUserCommandToLoginDTO_CommandMapping();
             loginUserAdminCommandToLoginDTO_CommandMapping();
             ResetPasswordUserCommandToResetPasswordDto_CommandMapping();
+            EditProfileCommandToApplicationUser_CommaneMapping();
+
+
         }
     }
 }
