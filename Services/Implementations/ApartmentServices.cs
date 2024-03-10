@@ -6,16 +6,23 @@ namespace Services.Implementations
 {
     public class ApartmentServices : IApartmentServices
     {
+        #region Fields
         private readonly IApartmentRepository _apartmentRepository;
+
+        #endregion
+
+        #region Ctor
         public ApartmentServices(IApartmentRepository apartmentRepository)
         {
             _apartmentRepository = apartmentRepository;
         }
+        #endregion
 
+        #region Handle Functions
         public async Task<Apartment> AddApartmentAsync(Apartment apartment)
         {
-           return await _apartmentRepository.AddAsync(apartment);
-            
+            return await _apartmentRepository.AddAsync(apartment);
+
         }
 
         public async Task<string> UpdateApartmentAsync(Apartment apartment)
@@ -23,5 +30,21 @@ namespace Services.Implementations
             await _apartmentRepository.UpdateAsync(apartment);
             return "";
         }
+
+        public async Task<Apartment> GetApartment(int apartmentId)
+        {
+            var apartment = await _apartmentRepository.GetByIdAsync(apartmentId);
+            return apartment;
+        }
+
+        public IQueryable<Apartment> GetUserApartments(string userID)
+        {
+            var apartments = _apartmentRepository.GetTableNoTracking().Where(x => x.OwnerId == userID);
+            return apartments;
+        }
+        #endregion
+
+
+
     }
 }

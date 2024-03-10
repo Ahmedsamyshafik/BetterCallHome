@@ -14,10 +14,8 @@ namespace Services.Abstracts
         Task<UserManagerResponseDTO> ForgetPassword(string email);
         Task<UserManagerResponseDTO> ResetPasswordForEmail(ReserPasswordVM model);
         Task<UserManagerResponseDTO> ResetPassword(ResetPasswordDTO model);
-        Task<UserDTO> LoginForAdmin(LoginDTO model);
-        Task<UserDTO> LoginForOwners(LoginDTO model);
         bool NameIsExist(string name, string email);
         Task<string> UpdateStudentandOwnerProfile(ApplicationUser user, IFormFile? img);
-        Task<ReturnedUserDataDto> GetUserData(string ViewerID , string ViewedID);
+        Task<ReturnedUserDataDto> GetUserData(string ViewerID, string ViewedID);
     }
 }

@@ -26,7 +26,6 @@
 
   <ItemGroup>
     <Folder Include="Features\Apartments\Commands\Results\" />
-    <Folder Include="Features\Apartments\Queries\" />
     <Folder Include="Mapping\ApartmentMapping\QueryMapping\" />
   </ItemGroup>
 

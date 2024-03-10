@@ -20,7 +20,8 @@ namespace Infrastructure.Data
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
         public DbSet<View> views { get; set; }
         public DbSet<UserApartmentsReact> userApartmentsReacts { get; set; }
-        public DbSet<UserApartmentsComment> apartmentsComments { get; set; }
+        public DbSet<UserApartmentsComment> userapartmentsComments { get; set; }
+        public DbSet<NotificationTransaction> notificationTransactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

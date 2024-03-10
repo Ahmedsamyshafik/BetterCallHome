@@ -13,7 +13,7 @@ namespace Domin.Models
         public int Room { get; set; }
         public decimal Price { get; set; }
         public int NumberOfUsers { get; set; }
-        public int Views { get; set; } // alot like that {Favourite}
+        public int Likes { get; set; }
         public bool Publish { get; set; }
         public string? CoverImageName { get; set; }
 
@@ -31,7 +31,7 @@ namespace Domin.Models
         [ForeignKey(nameof(Owner))]// ownerrr
         public string OwnerId { get; set; }
         public virtual ApplicationUser Owner { get; set; }
-        
+
 
         //[ForeignKey("UsersApartment")]// Students
         [InverseProperty(nameof(Models.ApplicationUser.CurrentLivingIn))]

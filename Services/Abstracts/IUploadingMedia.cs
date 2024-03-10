@@ -7,5 +7,6 @@ namespace Services.Abstracts
     {
         Task<ReturnedMediaDto> UploadFileAsync(IFormFile media, string folderPath);
         Task<ICollection<ReturnedMediaDto>> UploadFilesAsync(ICollection<IFormFile> media, string folderPath);
+        Task<IFormFile> GetImage(string userId);
     }
 }

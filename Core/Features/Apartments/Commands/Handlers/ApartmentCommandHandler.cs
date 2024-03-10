@@ -10,18 +10,25 @@ using Services.Abstracts;
 namespace Core.Features.Apartments.Commands.Handlers
 {
     public class ApartmentCommandHandler : ResponseHandler,
-                    IRequestHandler<AddApartmentCommand, Response<string>>
+                    IRequestHandler<AddApartmentCommand, Response<string>>,
+                    IRequestHandler<AddCommentApartmentCommand, Response<string>>,
+                    IRequestHandler<AddReactApartmentCommand, Response<string>>
     {
-        #region InJect
+        #region Fields
         private readonly IApartmentServices _apartmentServices;
         private readonly IMapper _mapper;
         private readonly IUploadingMedia _media;
         private readonly IVideosServices _videos;
         private readonly IImagesServices _images;
         private readonly IRoyalServices _royal;
+        private readonly ICommentServices _comment;
+        private readonly IReactServices _react;
         private readonly UserManager<ApplicationUser> _userManager;
+        #endregion
+        #region Ctor
         public ApartmentCommandHandler(IApartmentServices apartmentServices, IMapper mapper, IUploadingMedia media
-             , IVideosServices videos, IImagesServices images, IRoyalServices royal, UserManager<ApplicationUser> userManager)
+                    , IVideosServices videos, IImagesServices images, IRoyalServices royal, UserManager<ApplicationUser> userManager
+                   , ICommentServices comment, IReactServices react)
         {
             _apartmentServices = apartmentServices;
             _mapper = mapper;
@@ -30,10 +37,13 @@ namespace Core.Features.Apartments.Commands.Handlers
             _images = images;
             _royal = royal;
             _userManager = userManager;
-
+            _comment = comment;
+            _react = react;
         }
         #endregion
 
+
+        #region MyRegion
 
         public async Task<Response<string>> Handle(AddApartmentCommand request, CancellationToken cancellationToken)
         {
@@ -82,5 +92,61 @@ namespace Core.Features.Apartments.Commands.Handlers
                 return BadRequest<string>("Faild");
             }
         }
+
+        public async Task<Response<string>> Handle(AddCommentApartmentCommand request, CancellationToken cancellationToken)
+        {
+            //validation userid-apartmentid
+            var user = await _userManager.FindByIdAsync(request.UserID);
+            if (user == null) return BadRequest<string>("No user with this id..!");
+            var apartment = await _apartmentServices.GetApartment(request.ApartmentID);
+            if (apartment == null) return BadRequest<string>("No Apartment with this id..!");
+            //mapping
+            var comment = new UserApartmentsComment { ApartmentId = request.ApartmentID, Comment = request.Comment, UserId = request.UserID };
+            //adding
+            //check abilite to add?  
+            var checkVar = await _comment.CanCommentOrNo(request.UserID, request.ApartmentID, 3);
+            if (checkVar)
+            {
+                // Add To Notification Table..
+                var result = await _comment.AddCommentAsync(comment);
+                //return
+                if (result == "Success") return Success("");
+                return BadRequest<string>("");
+            }
+            return BadRequest<string>("Can't Comment,Your Limit Comments is Only 3.");
+
+        }
+
+        public async Task<Response<string>> Handle(AddReactApartmentCommand request, CancellationToken cancellationToken)
+        {
+            //validation userid-apartmentid
+            var user = await _userManager.FindByIdAsync(request.UserID);
+            if (user == null) return BadRequest<string>("No user with this id..!");
+            var apartment = await _apartmentServices.GetApartment(request.ApartmentID);
+            if (apartment == null) return BadRequest<string>("No Apartment with this id..!");
+            //mapping
+            var react = new UserApartmentsReact { ApartmentId = request.ApartmentID, UserId = request.UserID };
+            //adding
+            //check abilite to add?  
+            var checkVar = await _react.CanReactOrNo(request.UserID, request.ApartmentID);
+            if (checkVar)
+            { // Add To Notification Table..
+                var result = await _react.AddReactAsync(react);
+                if (result == "Success")
+                {
+                    apartment.Likes++;
+                    await _apartmentServices.UpdateApartmentAsync(apartment);
+                    return Success("");
+                }
+                return BadRequest<string>("");
+            }
+            return BadRequest<string>("Can't React,You Already reacted.");
+
+
+        }
+        #endregion
+
+
+
     }
 }

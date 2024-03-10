@@ -2,6 +2,7 @@
 using Core.Features.Users.Commands.Results;
 using Infrastructure.CustomValidation;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace Core.Features.Users.Commands.Models
@@ -40,6 +41,8 @@ namespace Core.Features.Users.Commands.Models
         [MinLength(6)]
         [MaxLength(255)]
         public string ConfirmPassword { get; set; }
+
+        public IFormFile? imgae { get; set; }
 
 
 

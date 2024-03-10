@@ -11,6 +11,7 @@ namespace Domin.Models
         public string? Address { get; set; }
         public string Gender { get; set; }
         public string? imagePath { get; set; }
+        public string? imageName { get; set; }
         public int Counter { get; set; }
 
 

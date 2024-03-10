@@ -14,6 +14,9 @@ public static class ModuleInfrustructureDependencies
         services.AddTransient<IVideoRepository, VideoRepository>();
         services.AddTransient<IRoyalDocumentRepository, RoyalDocumentRepository>();
         services.AddTransient<IViewRepository, ViewRepository>();
+        services.AddTransient<ICommentRepository, CommentRepository>();
+        services.AddTransient<IReactRepository, ReactRepository>();
+        services.AddTransient<INotifyRepository, NotifyRepository>();
 
         services.AddTransient(typeof(IGenericRepositoryAsync<>), typeof(GenericRepositoryAsync<>));
         return services;

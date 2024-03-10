@@ -12,8 +12,7 @@ namespace Core.Features.Users.Commands.Handlers
     public class UserCommandHandler : ResponseHandler,
                     IRequestHandler<RegisterStudentCommand, Response<UserResponse>>,
                     IRequestHandler<LoginUserCommand, Response<UserResponse>>,
-                    IRequestHandler<LoginUserAdminCommand, Response<UserResponse>>,
-                    IRequestHandler<LoginUserOwnerCommand, Response<UserResponse>>,
+
                     IRequestHandler<ChangePasswordUserCommand, Response<string>>,
                     IRequestHandler<ResetPasswordUserCommand, Response<string>>,
                     IRequestHandler<EditProfileStudentandOwnerCommand, Response<string>>
@@ -23,13 +22,13 @@ namespace Core.Features.Users.Commands.Handlers
 
         private readonly IAuthService _auth;
         private readonly IMapper _mapper;
-       
+
 
         public UserCommandHandler(IAuthService auth, IMapper mapper)
         {
             _auth = auth;
             _mapper = mapper;
-           
+
         }
         #endregion
 
@@ -66,34 +65,6 @@ namespace Core.Features.Users.Commands.Handlers
             {
                 return BadRequest<UserResponse>(result.Message);
             }
-            //Success
-            return Success(response);
-        }
-
-        public async Task<Response<UserResponse>> Handle(LoginUserAdminCommand request, CancellationToken cancellationToken)
-        {
-            //map from LoginUserAdminCommand to LoginDto
-            var paramter = _mapper.Map<LoginDTO>(request);
-            //Service
-            var result = await _auth.LoginForAdmin(paramter);
-            //mapping from UserDto To UserResponse
-            var response = _mapper.Map<UserResponse>(result);
-            //return BadRequest
-            if (!result.IsAuthenticated) { return BadRequest<UserResponse>(result.Message); }
-            //Success
-            return Success(response);
-        }
-
-        public async Task<Response<UserResponse>> Handle(LoginUserOwnerCommand request, CancellationToken cancellationToken)
-        {
-            //map from LoginUserAdminCommand to LoginDto
-            var paramter = _mapper.Map<LoginDTO>(request);
-            //Service
-            var result = await _auth.LoginForOwners(paramter);
-            //mapping from UserDto To UserResponse
-            var response = _mapper.Map<UserResponse>(result);
-            //return BadRequest
-            if (!result.IsAuthenticated) { return BadRequest<UserResponse>(result.Message); }
             //Success
             return Success(response);
         }

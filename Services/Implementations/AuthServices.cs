@@ -155,56 +155,7 @@ namespace Services.Implementations
             return returned;
         }
 
-        public async Task<UserDTO> LoginForAdmin(LoginDTO model)
-        {
-            UserDTO returnedUser = new();
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
-            {
-                returnedUser.Message = "Name Or Password is invalid..!";
 
-                returnedUser.Email = model.Email;
-                return returnedUser;
-            }
-            var roles = await _userManager.GetRolesAsync(user);
-            if (roles.Contains(Constants.AdminRole))
-            {
-                return await Login(model);
-            }
-            else
-            {
-                returnedUser.Message = "Name Or Password is invalid..!";
-
-                returnedUser.Email = model.Email;
-                return returnedUser;
-            }
-        }
-
-        public async Task<UserDTO> LoginForOwners(LoginDTO model)
-        {
-            UserDTO returnedUser = new();
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
-            {
-                returnedUser.Message = "Name Or Password is invalid..!";
-                var r = await _userManager.CheckPasswordAsync(user, model.Password);
-
-                returnedUser.Email = model.Email;
-                return returnedUser;
-            }
-            var roles = await _userManager.GetRolesAsync(user);
-            if (roles.Contains(Constants.OwnerRole))
-            {
-                return await Login(model);
-            }
-            else
-            {
-                returnedUser.Message = "Name Or Password is invalid..!";
-                returnedUser.IsAuthenticated = false;
-                returnedUser.Email = model.Email;
-                return returnedUser;
-            }
-        }
         #endregion
 
         #region Services
@@ -225,6 +176,7 @@ namespace Services.Implementations
             {
                 var returned = await _media.UploadFileAsync(img, Constants.EditProfilePicture);
                 realUser.imagePath = returned.Path;
+                realUser.imageName = returned.Name;
             }
             //Name? Falidation about name here?
             var ExistOrNot = NameIsExist(user.UserName, user.Email);

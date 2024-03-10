@@ -9,6 +9,7 @@
         public const string ApartmentPics = "/assets/ApartmentPics";
         public const string ApartmentVids = "/assets/ApartmentVids";
         public const string ApartmentRoyalDocPics = "/assets/RoyalDocPics";
+        
  
 
     }

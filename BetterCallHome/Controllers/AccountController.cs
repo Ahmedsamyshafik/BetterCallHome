@@ -29,14 +29,14 @@ namespace BetterCallHomeWeb.Controllers
         #region Login-Register
 
         [HttpPost("[action]")]
-        public async Task<IActionResult> Register([FromBody] RegisterStudentCommand command)
+        public async Task<IActionResult> Register([FromForm] RegisterStudentCommand command)
         {
             var response = await Mediator.Send(command);
             return NewResult(response);
         }
 
         [HttpPost("[action]")]
-        public async Task<IActionResult> Login([FromBody] LoginUserCommand command)
+        public async Task<IActionResult> Login([FromForm] LoginUserCommand command)
         {
             var response = await Mediator.Send(command);
             return NewResult(response);
@@ -129,7 +129,8 @@ namespace BetterCallHomeWeb.Controllers
             var response = await Mediator.Send(command);
             return NewResult(response);
         }
-        [HttpGet]
+
+        [HttpGet("[action]")]
         public async Task<IActionResult> GetProfileData([FromQuery] GetProfileDataQuery query)
         {
 

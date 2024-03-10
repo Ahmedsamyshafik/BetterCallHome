@@ -18,6 +18,9 @@ namespace Core
             services.AddScoped<IVideosServices, VideosServices>();
             services.AddScoped<IImagesServices, ImagesServices>();
             services.AddScoped<IViewServices, ViewServices>();
+            services.AddScoped<ICommentServices, CommentServices>();
+            services.AddScoped<IReactServices, ReactServices>();
+            services.AddScoped<iNotifyServices, NotifyServices>();
 
             return services;
         }
