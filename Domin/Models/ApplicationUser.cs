@@ -11,11 +11,12 @@ namespace Domin.Models
         public string? Address { get; set; }
         public string Gender { get; set; }
         public string? imagePath { get; set; }
+        public int Counter { get; set; }
 
 
         // [ForeignKey("Apartments")]//Owner
         // public int UserApartmentId { get; set; }//
-        [InverseProperty(nameof(Models.Apartment.Owner))]
+        [InverseProperty(nameof(Apartment.Owner))]
         public virtual ICollection<Apartment>? OwnedApartment { get; set; }//Owner
 
 
@@ -24,6 +25,9 @@ namespace Domin.Models
         public int? CurrentLivingInId { get; set; }
         public virtual Apartment? CurrentLivingIn { get; set; }
 
+        public virtual ICollection<View>? Viewers { get; set; }
+        public virtual ICollection<UserApartmentsComment>? Comments { get; set; }
+        public virtual ICollection<UserApartmentsReact>? Reacts { get; set; }
 
     }
 }

@@ -17,6 +17,7 @@ namespace Core
             services.AddScoped<IRoyalServices, RoyalServices>();
             services.AddScoped<IVideosServices, VideosServices>();
             services.AddScoped<IImagesServices, ImagesServices>();
+            services.AddScoped<IViewServices, ViewServices>();
 
             return services;
         }

@@ -8,10 +8,10 @@ namespace Infrastructure.Repository.Repository
 {
     public class RoyalDocumentRepository : GenericRepositoryAsync<RoyalDocument>, IRoyalDocumentRepository
     {
-        private readonly DbSet<RoyalDocumentRepository> royal;
+        private readonly DbSet<RoyalDocument> royal;
         public RoyalDocumentRepository(AppDbContext db) : base(db)
         {
-            royal = db.Set<RoyalDocumentRepository>();
+            royal = db.Set<RoyalDocument>();
         }
     }
 }

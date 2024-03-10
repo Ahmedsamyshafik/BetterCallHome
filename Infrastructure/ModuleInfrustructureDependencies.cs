@@ -13,6 +13,7 @@ public static class ModuleInfrustructureDependencies
         services.AddTransient<IimagesRepository, imagesRepository>();
         services.AddTransient<IVideoRepository, VideoRepository>();
         services.AddTransient<IRoyalDocumentRepository, RoyalDocumentRepository>();
+        services.AddTransient<IViewRepository, ViewRepository>();
 
         services.AddTransient(typeof(IGenericRepositoryAsync<>), typeof(GenericRepositoryAsync<>));
         return services;

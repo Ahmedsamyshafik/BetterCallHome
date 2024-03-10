@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240308160201_deploying")]
-    partial class deploying
+    [Migration("20240310123506_aaaaaaaaaaaah")]
+    partial class aaaaaaaaaaaah
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -175,6 +175,9 @@ namespace Infrastructure.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Counter")
+                        .HasColumnType("int");
+
                     b.Property<int?>("CurrentLivingInId")
                         .HasColumnType("int");
 
@@ -292,6 +295,96 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Service");
+                });
+
+            modelBuilder.Entity("Domin.Models.UserApartmentsComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApartmentId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("apartmentsComments");
+                });
+
+            modelBuilder.Entity("Domin.Models.UserApartmentsReact", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApartmentId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("userApartmentsReacts");
+                });
+
+            modelBuilder.Entity("Domin.Models.View", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("DateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ViewedID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ViewerID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("count")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.ToTable("views");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -500,6 +593,51 @@ namespace Infrastructure.Migrations
                     b.Navigation("Apartment");
                 });
 
+            modelBuilder.Entity("Domin.Models.UserApartmentsComment", b =>
+                {
+                    b.HasOne("Domin.Models.Apartment", "Apartment")
+                        .WithMany("Comments")
+                        .HasForeignKey("ApartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domin.Models.ApplicationUser", "user")
+                        .WithMany("Comments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Apartment");
+
+                    b.Navigation("user");
+                });
+
+            modelBuilder.Entity("Domin.Models.UserApartmentsReact", b =>
+                {
+                    b.HasOne("Domin.Models.Apartment", "Apartment")
+                        .WithMany("Reacts")
+                        .HasForeignKey("ApartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domin.Models.ApplicationUser", "user")
+                        .WithMany("Reacts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Apartment");
+
+                    b.Navigation("user");
+                });
+
+            modelBuilder.Entity("Domin.Models.View", b =>
+                {
+                    b.HasOne("Domin.Models.ApplicationUser", null)
+                        .WithMany("Viewers")
+                        .HasForeignKey("ApplicationUserId");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -557,6 +695,10 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("ApartmentVideo");
 
+                    b.Navigation("Comments");
+
+                    b.Navigation("Reacts");
+
                     b.Navigation("RoyalDocument");
 
                     b.Navigation("StudentsApartment");
@@ -564,7 +706,13 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domin.Models.ApplicationUser", b =>
                 {
+                    b.Navigation("Comments");
+
                     b.Navigation("OwnedApartment");
+
+                    b.Navigation("Reacts");
+
+                    b.Navigation("Viewers");
                 });
 
             modelBuilder.Entity("Domin.Models.Service", b =>

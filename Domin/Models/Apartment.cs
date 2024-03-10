@@ -31,11 +31,16 @@ namespace Domin.Models
         [ForeignKey(nameof(Owner))]// ownerrr
         public string OwnerId { get; set; }
         public virtual ApplicationUser Owner { get; set; }
+        
 
         //[ForeignKey("UsersApartment")]// Students
         [InverseProperty(nameof(Models.ApplicationUser.CurrentLivingIn))]
         //public int UserApartmentId { get; set; }
         public virtual ICollection<ApplicationUser>? StudentsApartment { get; set; }
+
+
+        public virtual ICollection<UserApartmentsReact>? Reacts { get; set; }
+        public virtual ICollection<UserApartmentsComment>? Comments { get; set; }
 
         #region Services?
         public int ApartmentServicesId { get; set; }

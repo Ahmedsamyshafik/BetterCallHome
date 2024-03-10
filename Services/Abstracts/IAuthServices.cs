@@ -18,6 +18,6 @@ namespace Services.Abstracts
         Task<UserDTO> LoginForOwners(LoginDTO model);
         bool NameIsExist(string name, string email);
         Task<string> UpdateStudentandOwnerProfile(ApplicationUser user, IFormFile? img);
-    //    Task<string> UploadAccountPicture(IFormFile img);
+        Task<ReturnedUserDataDto> GetUserData(string ViewerID , string ViewedID);
     }
 }

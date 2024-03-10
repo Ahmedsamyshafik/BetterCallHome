@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Mapping\UserMapping\QueryMapping\**" />
+    <EmbeddedResource Remove="Mapping\UserMapping\QueryMapping\**" />
+    <None Remove="Mapping\UserMapping\QueryMapping\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
     <PackageReference Include="MediatR" Version="12.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
@@ -21,11 +27,7 @@
   <ItemGroup>
     <Folder Include="Features\Apartments\Commands\Results\" />
     <Folder Include="Features\Apartments\Queries\" />
-    <Folder Include="Features\Users\Queries\Handlers\" />
-    <Folder Include="Features\Users\Queries\Models\" />
-    <Folder Include="Features\Users\Queries\Results\" />
     <Folder Include="Mapping\ApartmentMapping\QueryMapping\" />
-    <Folder Include="Mapping\UserMapping\QueryMapping\" />
   </ItemGroup>
 
 </Project>

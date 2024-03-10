@@ -2,7 +2,6 @@
 using Core.Features.Apartments.Commands.Models;
 using Core.Features.Users.Commands.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace BetterCallHomeWeb.Areas
 {
@@ -23,12 +22,7 @@ namespace BetterCallHomeWeb.Areas
             var response = await Mediator.Send(command);
             return NewResult(response);
         }
-        [HttpGet]
-        private IActionResult TryToGetUser()
-        {
+        //  [HttpGet]
 
-            var hah = HttpContext.User.FindFirstValue("uid");
-            return Ok();
-        }
     }
 }

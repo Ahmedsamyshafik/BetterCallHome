@@ -16,6 +16,7 @@ namespace Core.Mapping.UserMapping
             ResetPasswordUserCommandToResetPasswordDto_CommandMapping();
             EditProfileCommandToApplicationUser_CommaneMapping();
 
+            ApplicationUserToUserResponse();
 
         }
     }

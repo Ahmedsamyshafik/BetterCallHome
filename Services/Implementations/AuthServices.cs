@@ -106,7 +106,7 @@ namespace Services.Implementations
                 claims: claims,
                 issuer: _configuration["JWT:Issuer"],
                 audience: _configuration["Jwt:Audience"],
-                expires: DateTime.Now.AddDays(1), // Expire date..
+                expires: DateTime.Now.AddDays(7), // Expire date..
                 signingCredentials: SigingCredentials
                 );
             var myToken = new
@@ -224,6 +224,21 @@ namespace Services.Implementations
             if (result.Succeeded) return "Success";
             return _GlobalError.ErrorCode(result);
         }
+
+        public async Task<ReturnedUserDataDto> GetUserData(string ViewerID, string ViewedID)
+        {
+            var userdb = await _userManager.FindByIdAsync(ViewerID);
+            if (userdb == null) return new ReturnedUserDataDto { Message = "User Not Founded" };
+            userdb.Counter++;
+            var result = await _userManager.UpdateAsync(userdb);
+            if (!result.Succeeded) return new ReturnedUserDataDto { Message = "Faild" };
+            if (ViewedID == ViewerID) // Not increase views by him self
+                return new ReturnedUserDataDto { Message = "Success", user = userdb };
+            return new ReturnedUserDataDto { Message = "Success", user = userdb, OperationCount = userdb.Counter };
+
+        }
+
+
         #endregion
 
         #region Email
@@ -408,6 +423,7 @@ namespace Services.Implementations
                 };
             }
         }
+
 
 
 

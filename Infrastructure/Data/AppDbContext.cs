@@ -18,19 +18,49 @@ namespace Infrastructure.Data
         public DbSet<Service> Service { get; set; }
         public DbSet<ApartmentServices> ApartmentServices { get; set; }
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
+        public DbSet<View> views { get; set; }
+        public DbSet<UserApartmentsReact> userApartmentsReacts { get; set; }
+        public DbSet<UserApartmentsComment> apartmentsComments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ApplicationUser>()
             .HasMany(u => u.OwnedApartment)
             .WithOne(a => a.Owner)
-            .HasForeignKey(a => a.OwnerId);
+            .HasForeignKey(a => a.OwnerId)
+            .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ApplicationUser>()
-           .HasOne(u => u.CurrentLivingIn)
-           .WithMany(a => a.StudentsApartment)
-           .HasForeignKey(u => u.CurrentLivingInId)
-           .OnDelete(DeleteBehavior.Restrict);
+                .HasOne(u => u.CurrentLivingIn)
+                .WithMany(a => a.StudentsApartment)
+                .HasForeignKey(u => u.CurrentLivingInId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserApartmentsReact>()
+                .HasOne(r => r.user)
+                .WithMany(u => u.Reacts)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserApartmentsReact>()
+                .HasOne(r => r.Apartment)
+                .WithMany(a => a.Reacts)
+                .HasForeignKey(r => r.ApartmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserApartmentsComment>()
+                .HasOne(c => c.user)
+                .WithMany(u => u.Comments)
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserApartmentsComment>()
+                .HasOne(c => c.Apartment)
+                .WithMany(a => a.Comments)
+                .HasForeignKey(c => c.ApartmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
             base.OnModelCreating(modelBuilder);
         }
 

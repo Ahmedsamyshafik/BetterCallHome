@@ -1,10 +1,12 @@
 ﻿
 using BetterCallHomeWeb.Base;
 using Core.Features.Users.Commands.Models;
+using Core.Features.Users.Queries.Models;
 using Domin.ViewModel;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstracts;
+using System.Security.Claims;
 
 namespace BetterCallHomeWeb.Controllers
 {
@@ -120,12 +122,22 @@ namespace BetterCallHomeWeb.Controllers
 
         #endregion
 
-        #region Edit
+        #region Edit && GetAccount
         [HttpPost("[action]")]
         public async Task<IActionResult> EditProfileStudentandOwner([FromForm] EditProfileStudentandOwnerCommand command)
         {
             var response = await Mediator.Send(command);
             return NewResult(response);
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetProfileData([FromQuery] GetProfileDataQuery query)
+        {
+
+            query.RequesterUserID = HttpContext.User.FindFirstValue("uid");
+            var response = await Mediator.Send(query);
+            return NewResult(response);
+
+            //return Ok();
         }
         #endregion
 
