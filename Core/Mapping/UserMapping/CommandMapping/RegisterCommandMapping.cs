@@ -48,12 +48,7 @@ namespace Core.Mapping.UserMapping
             CreateMap<LoginUserCommand, LoginDTO>();
 
         }
-        public void loginUserAdminCommandToLoginDTO_CommandMapping()
-        {
-            // mapping from loginUserAdminCommand To LoginDTO
-            CreateMap<LoginUserAdminCommand, LoginDTO>();
 
-        }
 
 
 

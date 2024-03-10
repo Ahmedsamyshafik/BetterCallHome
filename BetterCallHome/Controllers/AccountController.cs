@@ -129,7 +129,7 @@ namespace BetterCallHomeWeb.Controllers
             var response = await Mediator.Send(command);
             return NewResult(response);
         }
-        [HttpGet]
+        [HttpGet("[action]")]
         public async Task<IActionResult> GetProfileData([FromQuery] GetProfileDataQuery query)
         {
 
