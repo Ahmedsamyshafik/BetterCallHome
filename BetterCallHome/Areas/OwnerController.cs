@@ -17,6 +17,7 @@ namespace BetterCallHomeWeb.Areas
             return NewResult(response);
         }
         [HttpPost("[action]")]
+        // [Authorize(Roles = Constants.OwnerRole)]
         public async Task<IActionResult> AddApartment([FromForm] AddApartmentCommand command)
         {
             var response = await Mediator.Send(command);

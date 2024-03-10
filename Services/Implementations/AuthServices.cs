@@ -75,7 +75,7 @@ namespace Services.Implementations
             var JwtSecuirtyToken = await CreateJwtToken(user);
             var res = _mapper.Map<UserDTO>(user);
             res.Expier = JwtSecuirtyToken.ValidTo;
-            res.Roles = new List<string> { Constants.UserRole };
+            res.Role = Constants.UserRole;
             res.Token = new JwtSecurityTokenHandler().WriteToken(JwtSecuirtyToken);
             res.IsAuthenticated = true;
             return res;
@@ -133,7 +133,21 @@ namespace Services.Implementations
             var roles = await _userManager.GetRolesAsync(user);
 
             var returned = _mapper.Map<UserDTO>(user);
-            returned.Roles = roles.ToList();
+            //roleing
+            if (roles.Contains(Constants.AdminRole))
+            {
+                returned.Role = Constants.AdminRole;
+            }
+            else if (roles.Contains(Constants.OwnerRole))
+            {
+                returned.Role = Constants.OwnerRole;
+            }
+            else
+            {
+                returned.Role = Constants.UserRole;
+            }
+
+            //returned.Roles = roles.ToList();
             returned.IsAuthenticated = true;
             returned.Expier = JwtSecuirtyToken.ValidTo;
             returned.Token = new JwtSecurityTokenHandler().WriteToken(JwtSecuirtyToken);
