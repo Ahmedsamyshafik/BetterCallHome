@@ -2,7 +2,6 @@
 using Core.Features.Apartments.Commands.Models;
 using Core.Features.Apartments.Queries.Models;
 using Microsoft.AspNetCore.Mvc;
-
 namespace BetterCallHomeWeb.Areas
 {
     [Route("api/[controller]")]

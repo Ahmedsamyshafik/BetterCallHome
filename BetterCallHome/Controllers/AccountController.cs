@@ -1,5 +1,4 @@
-﻿
-using BetterCallHomeWeb.Base;
+﻿using BetterCallHomeWeb.Base;
 using Core.Features.Users.Commands.Models;
 using Core.Features.Users.Queries.Models;
 using Domin.ViewModel;
@@ -7,7 +6,6 @@ using Google.Apis.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstracts;
 using System.Security.Claims;
-
 namespace BetterCallHomeWeb.Controllers
 {
     [Route("api/[controller]")]
