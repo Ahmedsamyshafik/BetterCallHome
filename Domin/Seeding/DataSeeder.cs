@@ -42,9 +42,10 @@ namespace Domin.Seeding
                     //Age = 22,
                     College = "CS",
                     University = "DU",
-                    Gender = "M",
+                    Gender = "male",
                     EmailConfirmed = true,
-                    Address = "Domiat"
+                    Address = "Domiat",
+                    CodeConfirm = "1"
                 };
 
                 var result = userManager.CreateAsync(adminUser, "Alahly1907#").Result;

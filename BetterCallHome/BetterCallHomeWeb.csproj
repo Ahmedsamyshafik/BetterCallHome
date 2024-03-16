@@ -15,6 +15,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.15" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="2.3.0" />
+    <PackageReference Include="Serilog.Sinks.MSSqlServer" Version="6.6.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
@@ -23,10 +26,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\Assets\AccountPics\" />
-    <Folder Include="wwwroot\Assets\ApartmentPics\" />
-    <Folder Include="wwwroot\Assets\ApartmentVids\" />
-    <Folder Include="wwwroot\Assets\RoyalDocPics\" />
+    <Folder Include="logs\" />
+    <Folder Include="wwwroot\AccountPics\" />
+    <Folder Include="wwwroot\ApartmentPics\" />
+    <Folder Include="wwwroot\ApartmentVids\" />
+    <Folder Include="wwwroot\RoyalDocPics\" />
   </ItemGroup>
 
 </Project>

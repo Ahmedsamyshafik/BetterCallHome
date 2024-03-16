@@ -42,11 +42,16 @@ namespace Services.Implementations
             // Success Confirm
             var result = await _userManager.ConfirmEmailAsync(user, normalToken);
             if (result.Succeeded)
+            {
+                user.EmailConfirmed = true;
+                await _userManager.UpdateAsync(user);
                 return new UserManagerResponseDTO
                 {
                     Message = "Email confirmed successfully!",
                     IsSuccess = true,
                 };
+            }
+
             // Invaild Confirm
             return new UserManagerResponseDTO
             {

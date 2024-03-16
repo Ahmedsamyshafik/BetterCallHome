@@ -2,6 +2,6 @@
 {
     public interface IImagesServices
     {
-        Task<string> AddImage(string imgname, string imgPath, int apartmentID);
+        Task<string> AddImage(string imgUrl, int apartmentID);
     }
 }

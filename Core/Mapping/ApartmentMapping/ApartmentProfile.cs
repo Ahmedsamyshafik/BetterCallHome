@@ -7,6 +7,7 @@ namespace Core.Mapping.ApartmentMapping
         public ApartmentProfile()
         {
             AddApartmentCommandMapping();
+            GetPendingApartmentQueryMapping();
 
         }
     }

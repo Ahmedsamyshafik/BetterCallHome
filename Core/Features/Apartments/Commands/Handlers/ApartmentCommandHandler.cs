@@ -61,34 +61,44 @@ namespace Core.Features.Apartments.Commands.Handlers
                 //Services To Save this imges and videos..
                 if (request.video != null)
                 {
-                    var videoPath = await _media.UploadFileAsync(request.video, Constants.ApartmentVids);
-                    var x = await _videos.AddVideo(videoPath.Name, videoPath.Path, apart.Id);
+                    var videoPath = await _media.SavingImage(request.video, request.RequestScheme, request.Requesthost, Constants.ApartmentVids);
+                    if (!videoPath.success) return BadRequest<string>("Faild in saving video");
+                    var x = await _videos.AddVideo(videoPath.message, apart.Id);
                     apart.ApartmentVideoID = x.Id;
                 }
                 if (request.Pics != null)
                 {
-                    var PicsPaths = await _media.UploadFilesAsync(request.Pics, Constants.ApartmentPics);
-                    foreach (var p in PicsPaths)
+
+                    foreach (var Pic in request.Pics)
                     {
-                        await _images.AddImage(p.Name, p.Path, apart.Id);
-                    }// Cover!
+                        if (Pic.Length > 0)
+                        {
+                            var PicsPaths = await _media.SavingImage(Pic, request.RequestScheme, request.Requesthost, Constants.ApartmentPics);
+                            if (!PicsPaths.success) return BadRequest<string>("Faild To Save images");
+                            await _images.AddImage(PicsPaths.message, apart.Id);
+                        }
+                    }
+                    // Cover!
                     if (request.CoverImage != null)
                     {
-                        var CoverImage = await _media.UploadFileAsync(request.CoverImage, Constants.ApartmentPics);
-                        apart.CoverImageName = CoverImage.Name;
+                        var CoverImage = await _media.SavingImage(request.CoverImage, request.RequestScheme, request.Requesthost, Constants.ApartmentPics);
+                        if (!CoverImage.success) return BadRequest<string>("Faild in saving Cover Image");
+                        apart.CoverImageName = CoverImage.message;
                     }
                 }
                 if (request.RoyalDocument != null)
                 {
-                    var RoyalPath = await _media.UploadFileAsync(request.RoyalDocument, Constants.ApartmentRoyalDocPics);
-                    var x = await _royal.AddRoyal(RoyalPath.Name, RoyalPath.Path, apart.Id);
+                    var RoyalPath = await _media.SavingImage(request.RoyalDocument, request.RequestScheme, request.Requesthost, Constants.ApartmentRoyalDocPics);
+                    if (!RoyalPath.success) return BadRequest<string>("Faild in saving Cover Image");
+                    var x = await _royal.AddRoyal(RoyalPath.message, apart.Id);
                     apart.Document = x.Id;
                 }
                 await _apartmentServices.UpdateApartmentAsync(apart);
                 return Success("");
             }
-            catch
+            catch (Exception ex)
             {
+                var exap = ex;
                 return BadRequest<string>("Faild");
             }
         }

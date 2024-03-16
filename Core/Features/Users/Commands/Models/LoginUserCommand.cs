@@ -16,7 +16,7 @@ namespace Core.Features.Users.Commands.Models
         [MinLength(6)]
         [MaxLength(255)]
         public string Password { get; set; }
-
-        public IFormFile? image {  get; set; }
+      
+        public IFormFile? image { get; set; }
     }
 }

@@ -14,7 +14,7 @@ namespace Infrastructure.CustomValidation
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
             var phoneNumber = value as string;
-
+            if (phoneNumber == null) { return new ValidationResult("The Phone field is required."); }
             bool checkingAlphapitcs = IsNumeric(phoneNumber);
             if (checkingAlphapitcs)
             {

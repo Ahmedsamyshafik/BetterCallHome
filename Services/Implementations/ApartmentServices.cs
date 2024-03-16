@@ -1,5 +1,6 @@
 ﻿using Domin.Models;
 using Infrastructure.Repository.IRepository;
+using Microsoft.EntityFrameworkCore;
 using Services.Abstracts;
 
 namespace Services.Implementations
@@ -37,10 +38,15 @@ namespace Services.Implementations
             return apartment;
         }
 
-        public IQueryable<Apartment> GetUserApartments(string userID)
+        public IQueryable<Apartment> GetOwnerApartments(string userID)
         {
             var apartments = _apartmentRepository.GetTableNoTracking().Where(x => x.OwnerId == userID);
             return apartments;
+        }
+
+        public async Task<List<Apartment>> GetPendingApartmentd()
+        {
+            return await _apartmentRepository.GetTableNoTracking().Where(x => x.Publish == false).ToListAsync();
         }
         #endregion
 

@@ -4,6 +4,6 @@ namespace Services.Abstracts
 {
     public interface IVideosServices
     {
-        Task<ApartmentVideo> AddVideo(string videoname, string videoPath, int apartmentID);
+        Task<ApartmentVideo> AddVideo(string url, int apartmentID);
     }
 }

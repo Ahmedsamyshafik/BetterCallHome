@@ -8,10 +8,11 @@ namespace Services.Implementations
     {
         private readonly IimagesRepository _iimages;
         public ImagesServices(IimagesRepository iimages) { _iimages = iimages; }
-        public async Task<string> AddImage(string imgname, string imgPath, int apartmentID)
+
+        public async Task<string> AddImage(string imgUrl, int apartmentID)
         {
 
-            ApartmentImages apartmentImages = new ApartmentImages() { ApartmentID = apartmentID, ImageName = imgname, ImagePath = imgPath };
+            ApartmentImages apartmentImages = new ApartmentImages() { ApartmentID = apartmentID, ImageUrl = imgUrl };
             var x = await _iimages.AddAsync(apartmentImages);
             if (x == null) return "Faild";
             return "Success";

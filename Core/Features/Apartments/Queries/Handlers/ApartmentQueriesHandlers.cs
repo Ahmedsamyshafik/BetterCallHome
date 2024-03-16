@@ -1,16 +1,18 @@
-﻿using Core.Bases;
+﻿using AutoMapper;
+using Core.Bases;
 using Core.Features.Apartments.Queries.Models;
 using Core.Features.Apartments.Queries.Results;
 using Domin.Models;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Services.Abstracts;
 
 
 namespace Core.Features.Apartments.Queries.Handlers
 {
-    public class ApartmentQueriesHandlers : ResponseHandler, IRequestHandler<GetNotificationApartmentQuery, Response<NotificationApartmentResponse>>
+    public class ApartmentQueriesHandlers : ResponseHandler,
+        IRequestHandler<GetNotificationApartmentQuery, Response<NotificationApartmentResponse>>,
+        IRequestHandler<GetPendingApartmentsQuery, Response<PendingApartmentsResponse>>
     {
         #region Fields
         private readonly UserManager<ApplicationUser> _userManager;
@@ -18,17 +20,19 @@ namespace Core.Features.Apartments.Queries.Handlers
         private readonly IApartmentServices _apartmentServices;
         private readonly IReactServices _reactServices;
         private readonly ICommentServices _commentServices;
+        private readonly IMapper _mapper;
         #endregion
 
         #region Ctor
         public ApartmentQueriesHandlers(UserManager<ApplicationUser> userManager, IViewServices viewServices, IApartmentServices apartmentServices
-                 , IReactServices reactServices, ICommentServices commentServices)
+                 , IReactServices reactServices, ICommentServices commentServices, IMapper mapper)
         {
             _userManager = userManager;
             _viewServices = viewServices;
             _apartmentServices = apartmentServices;
             _reactServices = reactServices;
             _commentServices = commentServices;
+            _mapper = mapper;
         }
         #endregion
 
@@ -43,7 +47,7 @@ namespace Core.Features.Apartments.Queries.Handlers
             var userViews = _viewServices.GetAccountViews(request.UserId);
             //---get likes---
             // user apartments
-            var userApartments = _apartmentServices.GetUserApartments(request.UserId);
+            var userApartments = _apartmentServices.GetOwnerApartments(request.UserId);
             //get likes by apartment_id
             List<int> apartmentIds = new List<int>();
             foreach (var apartmentId in userApartments)
@@ -64,9 +68,46 @@ namespace Core.Features.Apartments.Queries.Handlers
 
         }
 
+        public async Task<Response<PendingApartmentsResponse>> Handle(GetPendingApartmentsQuery request, CancellationToken cancellationToken)
+        {
+            //Get Apartments (Publish=Flase)
+            var apartments = await _apartmentServices.GetPendingApartmentd();
+            //Get Apartment Owner
+            List<string> ownersId = new();
+            foreach (var ownerId in apartments)
+            {
+                ownersId.Add(ownerId.OwnerId);
+            }
+            List<ApplicationUser> owners = new();
+            foreach (var userID in ownersId)
+            {
+                owners.Add(await _userManager.FindByIdAsync(userID));
+            }
+            //mapp owner and apartment together 
+            List<TempMappingApartmentsOwnersToPendint> temp = new();
+            for (int i = 0; i < apartments.Count(); i++)
+            {
+                TempMappingApartmentsOwnersToPendint one = new()
+                {
+                    Apartment = apartments[i],
+                    user = owners[i]
+                };
+                temp.Add(one);
+            }
+            var result = new List<PendingCollection>();
+            foreach (var res in temp)
+            {
+                var x = _mapper.Map<PendingCollection>(res);
+                result.Add(x);
+            }
+            var response = new PendingApartmentsResponse() { PendingApartments = result };
+            return Success(response);
+            //Mapping Data
+            //map from TempMappingApartmentOwnersToPendint To PendingApartmentsResponse
+            //   var response = _mapper.Map<List<PendingApartmentsResponse>>(temp);
+            //Return
+        }
 
-
-        #region Serivces
         private async Task<List<ReturnedNotify>> HandleMapping(List<UserApartmentsComment> comments, List<UserApartmentsReact> reacts, List<View> views)
         {
             var result = new List<ReturnedNotify>();
@@ -77,9 +118,8 @@ namespace Core.Features.Apartments.Queries.Handlers
                 foreach (var comment in comments)
                 {
                     var user = await _userManager.FindByIdAsync(comment.UserId);
-                    string imageUser = user.imagePath;
-                    string imageName = user.imageName;
-                    string paths = $"{imageUser}/{imageName}";
+
+                    string paths = user.imageUrl;
                     //Service To Upload Image By Path + imgae Name.(check)
                     var commentMapping = new ReturnedNotify
                     {
@@ -98,9 +138,8 @@ namespace Core.Features.Apartments.Queries.Handlers
                 foreach (var react in reacts)
                 {
                     var user = await _userManager.FindByIdAsync(react.UserId);
-                    string imageUser = user.imagePath;
-                    string imageName = user.imageName;
-                    string paths = $"{imageUser}/{imageName}";
+
+                    string paths = user.imageUrl;
                     //Service To Upload Image By Path + imgae Name.(check)
                     var reactMapping = new ReturnedNotify
                     {
@@ -119,9 +158,8 @@ namespace Core.Features.Apartments.Queries.Handlers
                 foreach (var view in views)
                 {
                     var user = await _userManager.FindByIdAsync(view.ViewerID);
-                    string imageUser = user.imagePath;
-                    string imageName = user.imageName;
-                    string paths = $"{imageUser}/{imageName}";
+
+                    string paths = user.imageUrl;
                     //Service To Upload Image By Path + imgae Name.(check)
                     var viewMapping = new ReturnedNotify
                     {
@@ -138,37 +176,7 @@ namespace Core.Features.Apartments.Queries.Handlers
             return result;
         }
 
-
-        private void GetProfileImage(string path)
-        {
-            // if (System.IO.File.Exists(path))
-            //{
-            //    // Read the file into a byte array
-            //    byte[] imageBytes = System.IO.File.ReadAllBytes(path);
-
-            //    // Return the image as a file response
-            //    return File(imageBytes, "image/jpeg", "myImage.jpg");
-            //}
-            //else
-            //{
-            //    return NotFound("Image not found");
-            //}            //byte[] imageData = System.IO.File.ReadAllBytes("path/to/your/image.jpg");
-            //var r=File.ReadAllBytes(paths);
-            var paths = "path/to/your/image.jpg";
-
-            using (FileStream stream = new FileStream(paths, FileMode.Open, FileAccess.Read))
-            {
-                IFormFile file = new FormFile
-                    (stream, 0, stream.Length, "fileName", Path.GetFileName(paths));
-            }
-        }
-
         #endregion
-
-        #endregion
-
-
-
     }
 }
 

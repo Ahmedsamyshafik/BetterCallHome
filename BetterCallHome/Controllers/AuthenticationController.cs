@@ -9,13 +9,13 @@ namespace BetterCallHomeWeb.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AccountController : AppControllerBase
+    public class AuthenticationController : AppControllerBase
     {
         #region inJect
         private readonly IAuthService _auth;
         private readonly IConfiguration _configuration;
 
-        public AccountController(IAuthService auth, IConfiguration configuration)
+        public AuthenticationController(IAuthService auth, IConfiguration configuration)
         {
             _auth = auth;
             _configuration = configuration;
@@ -78,7 +78,7 @@ namespace BetterCallHomeWeb.Controllers
             {
                 return Redirect($"{_configuration["AppUrl"]}/ConfirmEmail.html");
             }
-            return BadRequest(result);
+            return BadRequest(result.Message);
         }
 
 
@@ -108,34 +108,10 @@ namespace BetterCallHomeWeb.Controllers
             return NewResult(response);
         }
 
-        [HttpPost("[action]")]
-        public async Task<IActionResult> ChangePassword(ChangePasswordUserCommand command)
-        {
-            var response = await Mediator.Send(command);
-            return NewResult(response);
-        }
+       
         //change Password 
         #endregion
 
-        #region Edit && GetAccount
-        [HttpPost("[action]")]
-        public async Task<IActionResult> EditProfileStudentandOwner([FromForm] EditProfileStudentandOwnerCommand command)
-        {
-            var response = await Mediator.Send(command);
-            return NewResult(response);
-        }
-
-        [HttpGet("[action]")]
-        public async Task<IActionResult> GetProfileData([FromQuery] GetProfileDataQuery query)
-        {
-
-            query.RequesterUserID = HttpContext.User.FindFirstValue("uid");
-            var response = await Mediator.Send(query);
-            return NewResult(response);
-
-            //return Ok();
-        }
-        #endregion
 
 
 

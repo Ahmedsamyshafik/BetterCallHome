@@ -11,9 +11,9 @@ namespace Services.Implementations
         {
             _video = video;
         }
-        public async Task<ApartmentVideo> AddVideo(string videoname, string videoPath, int apartmentID)
+        public async Task<ApartmentVideo> AddVideo(string url, int apartmentID)
         {
-            ApartmentVideo video = new ApartmentVideo() { ApartmentID = apartmentID, VideoName = videoname, VideoPath = videoPath };
+            ApartmentVideo video = new ApartmentVideo() { ApartmentID = apartmentID, VideoUrl = url };
             return await _video.AddAsync(video);
         }
     }

@@ -9,5 +9,6 @@
         public string Gender { get; set; }
         public string? Message { get; set; }
         public string Roles { get; set; }
+        public string imagePath { get; set; }
     }
 }

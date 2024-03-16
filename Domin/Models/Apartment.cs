@@ -16,6 +16,7 @@ namespace Domin.Models
         public int Likes { get; set; }
         public bool Publish { get; set; }
         public string? CoverImageName { get; set; }
+        public DateTime? CreatedAt { get; set; }
 
         // [ForeignKey("RoyalDocument")]
         public int Document { get; set; }//Royal Decument
@@ -42,10 +43,7 @@ namespace Domin.Models
         public virtual ICollection<UserApartmentsReact>? Reacts { get; set; }
         public virtual ICollection<UserApartmentsComment>? Comments { get; set; }
 
-        #region Services?
-        public int ApartmentServicesId { get; set; }
-        public virtual ICollection<ApartmentServices>? ApartmentServices { get; set; }
-        #endregion
+
 
 
     }

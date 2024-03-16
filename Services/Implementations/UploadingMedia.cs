@@ -1,5 +1,4 @@
 ﻿using Domin.Models;
-using Infrastructure.DTO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -12,7 +11,6 @@ namespace Services.Implementations
         #region Fields
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly UserManager<ApplicationUser> _userManager;
-
         #endregion
 
         #region Ctor
@@ -25,166 +23,62 @@ namespace Services.Implementations
 
         #region Handle Functions
 
-
-        public async Task<ReturnedMediaDto> UploadFileAsync(IFormFile media, string folderPath)
+        public class responsing
         {
-
-            var ImagePath = $"{_hostingEnvironment.WebRootPath}{folderPath}";
-            string uniqueFileName = Guid.NewGuid().ToString() + media.FileName;
-            var uploadsFolder = Path.Combine(folderPath, uniqueFileName);
-            uploadsFolder = Path.Combine(ImagePath, uniqueFileName);
-            using (var fileStream = new FileStream(uploadsFolder, FileMode.Create))
-            {
-                await media.CopyToAsync(fileStream);
-            }
-            var result = new ReturnedMediaDto() { Name = uniqueFileName, Path = ImagePath };
-            return result;
-
+            public bool success;
+            public string message;
         }
 
-        public async Task<ICollection<ReturnedMediaDto>> UploadFilesAsync(ICollection<IFormFile> media, string folderPath)
+        public async Task<responsing> SavingImage(IFormFile imageFile, string requestSchema, HostString hostString, string folderName)
         {
-            ICollection<ReturnedMediaDto> pathes = new List<ReturnedMediaDto>();
-            foreach (var file in media)
+            string _uploadsDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", folderName);
+            try
             {
-                var ImagePath = $"{_hostingEnvironment.WebRootPath}{folderPath}";
-                string uniqueFileName = Guid.NewGuid().ToString() + file.FileName;
-                var uploadsFolder = Path.Combine(folderPath, uniqueFileName);
-                uploadsFolder = Path.Combine(ImagePath, uniqueFileName);
-                using (var fileStream = new FileStream(uploadsFolder, FileMode.Create))
+                if (imageFile == null || imageFile.Length == 0)
                 {
-                    await file.CopyToAsync(fileStream);
+
+                    return new responsing() { success = false, message = "Please provide a valid image file." };
+
                 }
-                var result = new ReturnedMediaDto() { Name = uniqueFileName, Path = ImagePath };
-                pathes.Add(result);
+
+                // Ensure the uploads directory exists
+                Directory.CreateDirectory(_uploadsDirectory);
+
+                // Generate a unique file name
+                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+
+                // Combine the uploads directory with the unique file name
+                var filePath = Path.Combine(_uploadsDirectory, uniqueFileName);
+
+                // Save the uploaded file to the uploads directory
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    imageFile.CopyTo(fileStream);
+                }
+
+                // Construct the URL to access the uploaded file
+                //  var imageUrl = $"{Request.Scheme}://{Request.Host}/uploads/{uniqueFileName}";
+                var imageUrl = $"{requestSchema}://{hostString}/{folderName}/{uniqueFileName}";
+
+
+                // Return the URL of the uploaded image
+                return new responsing() { success = true, message = imageUrl };
+
             }
-            return pathes;
-
-        }
-
-        public async Task<IFormFile> GetImage(string userId)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            string imageUser = user.imagePath;
-            string imageName = user.imageName;
-            string path = $"{imageUser}/{imageName}";
-            var bytes = System.IO.File.ReadAllBytes(path);
-            string contentType = GetContentType(imageName);
-            // Return the file with the appropriate content type
-            //var x = System.IO.File(bytes, contentType, Path.GetFileName(path));
-            //IFormFile file = new FormFile(File.OpenRead(path), 0, new FileInfo(path).Length, "fileName", imageName)
-            //{
-            //    Headers = new HeaderDictionary(),
-            //    ContentType = contentType
-            //};
-
-            //using (var stream = new FileStream(path, FileMode.Open))
-            //{
-            //    // Create an IFormFile instance
-            //    var file = new FormFile(stream, 0, stream.Length, "fileName", imageName)
-            //    {
-            //        Headers = new HeaderDictionary(),
-            //        ContentType = contentType
-            //    };
-
-            //    var zehket=File.OpenRead(path);
-            //    var ahh = 2;
-            //    // Process the file...
-            //    return file;
-            //}
-
-            //using (MemoryStream stream = new MemoryStream(bytes))
-            //{
-            //    IFormFile file = new FormFile(stream, 0, stream.Length, "fileName", "jpg")
-            //    {
-            //        Headers = new HeaderDictionary(),
-            //        ContentType = contentType
-            //    };
-            //    return file;
-
-            //    Use the "file" object as needed
-            //}
-
-            using (MemoryStream memoryStream = new MemoryStream(bytes))
+            catch (Exception ex)
             {
-                // Create an IFormFile from the MemoryStream
-                IFormFile imageFile = new FormFile(memoryStream, 0, bytes.Length, "file", imageName);
+                return new responsing() { success = false, message = $"An error occurred: {ex.Message}" };
 
-                return imageFile;
+
             }
-
-
-
-
-
-            //var x = File(bytes, contentType, Path.GetFileName(path));
-
-
-
-
         }
-        public byte[] GetImageFile(byte[] imageBytes)
-        {
-            // Check if the byte array is not null or empty
-            if (imageBytes == null || imageBytes.Length == 0)
-            {
-                throw new ArgumentNullException("imageBytes", "Image byte array cannot be null or empty.");
-            }
-
-            // You can save the byte array to a temporary file
-            string tempFilePath = Path.GetTempFileName();
-            File.WriteAllBytes(tempFilePath, imageBytes);
-
-            // Return the path to the temporary file
-            return File.ReadAllBytes(tempFilePath);
-        }
-
-        //public async Task<IFormFile> GetImage(string userid)
-        //{
-        //    var user = await _userManager.FindByIdAsync(userid);
-        //    string imageUser = user.imagePath;
-        //    string imageName = user.imageName;
-        //    string paths = $"{imageUser}/{imageName}";
-        //    // Read the file into a byte array
-        //    var bytes = File.ReadAllBytes(paths);
-        //    string contentType = GetContentType(imageName);
-        //    // Return the file with the appropriate content type
-        //    return System.IO.File(bytes, contentType, Path.GetFileName(paths));
-        //}
-
-        private string GetContentType(string fileName)
-        {
-            string extension = Path.GetExtension(fileName).ToLowerInvariant();
-            string contentType;
-
-            switch (extension)
-            {
-                case ".jpg":
-                case ".jpeg":
-                    contentType = "image/jpeg";
-                    break;
-                case ".png":
-                    contentType = "image/png";
-                    break;
-                case ".gif":
-                    contentType = "image/gif";
-                    break;
-                // Add more cases for other file extensions if needed
-                default:
-                    contentType = "application/octet-stream";
-                    break;
-            }
-
-            return contentType;
-        }
-
 
         #endregion
 
 
 
-
-
-
     }
+
 }
+
+

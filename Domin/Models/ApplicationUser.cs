@@ -5,13 +5,13 @@ namespace Domin.Models
 {
     public class ApplicationUser : IdentityUser
     {
+      
         // name , phone , Email
         public string? College { get; set; }
         public string? University { get; set; }
         public string? Address { get; set; }
         public string Gender { get; set; }
-        public string? imagePath { get; set; }
-        public string? imageName { get; set; }
+        public string? imageUrl { get; set; }
         public int Counter { get; set; }
         public string CodeConfirm { get; set; }
 

@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Context;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -122,7 +125,8 @@ builder.Services.AddCors(corsOptions =>
     corsOptions.AddPolicy("MyPolicy", corsPolicyBuilder =>
     {
         corsPolicyBuilder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-        corsPolicyBuilder.WithOrigins("http://localhost:3001");
+        corsPolicyBuilder.WithOrigins("http://localhost:3001","http://localhost:3000");
+
     });
 });
 //WithOrignal("http://") React Port
@@ -139,6 +143,12 @@ builder.Services.AddServicesDependencies();
 
 //--- Razor Page
 builder.Services.AddRazorPages();
+
+#region Add Serilog
+Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
+builder.Host.UseSerilog();
+#endregion
+
 
 var app = builder.Build();
 
@@ -176,14 +186,27 @@ app.MapControllers();
 //    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 
-// Data Seeder
-
+// 
+#region Data Seeder
 var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
 using (var scope = app.Services.CreateScope())
 {
     var service = scope.ServiceProvider;
     DataSeeder.Seed(service);
 }
+#endregion
+
+#region Logging
+app.Use(async (context, next) =>
+{
+    LogContext.PushProperty("UserId", context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+    LogContext.PushProperty("UserName", context.User.FindFirst(ClaimTypes.Name)?.Value);
+
+    await next();
+});
+
+app.UseSerilogRequestLogging();
+#endregion
 
 
 app.Run();

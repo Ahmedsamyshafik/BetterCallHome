@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class aaaaaaaaaaaah : Migration
+    public partial class yy : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -23,6 +23,21 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetRoles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "notificationTransactions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    userID = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CommentId = table.Column<int>(type: "int", nullable: false),
+                    ReactId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_notificationTransactions", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -73,7 +88,7 @@ namespace Infrastructure.Migrations
                     Room = table.Column<int>(type: "int", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     NumberOfUsers = table.Column<int>(type: "int", nullable: false),
-                    Views = table.Column<int>(type: "int", nullable: false),
+                    Likes = table.Column<int>(type: "int", nullable: false),
                     Publish = table.Column<bool>(type: "bit", nullable: false),
                     CoverImageName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Document = table.Column<int>(type: "int", nullable: false),
@@ -163,8 +178,9 @@ namespace Infrastructure.Migrations
                     University = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Gender = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    imagePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    imageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Counter = table.Column<int>(type: "int", nullable: false),
+                    CodeConfirm = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CurrentLivingInId = table.Column<int>(type: "int", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -211,34 +227,6 @@ namespace Infrastructure.Migrations
                         principalTable: "Apartment",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "apartmentsComments",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ApartmentId = table.Column<int>(type: "int", nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_apartmentsComments", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_apartmentsComments_Apartment_ApartmentId",
-                        column: x => x.ApartmentId,
-                        principalTable: "Apartment",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_apartmentsComments_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -327,6 +315,34 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "userapartmentsComments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ApartmentId = table.Column<int>(type: "int", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_userapartmentsComments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_userapartmentsComments_Apartment_ApartmentId",
+                        column: x => x.ApartmentId,
+                        principalTable: "Apartment",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_userapartmentsComments_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "userApartmentsReacts",
                 columns: table => new
                 {
@@ -384,16 +400,6 @@ namespace Infrastructure.Migrations
                 name: "IX_apartmentImages_ApartmentID",
                 table: "apartmentImages",
                 column: "ApartmentID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_apartmentsComments_ApartmentId",
-                table: "apartmentsComments",
-                column: "ApartmentId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_apartmentsComments_UserId",
-                table: "apartmentsComments",
-                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ApartmentServices_ApartmentId",
@@ -462,6 +468,16 @@ namespace Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_userapartmentsComments_ApartmentId",
+                table: "userapartmentsComments",
+                column: "ApartmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_userapartmentsComments_UserId",
+                table: "userapartmentsComments",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_userApartmentsReacts_ApartmentId",
                 table: "userApartmentsReacts",
                 column: "ApartmentId");
@@ -496,9 +512,6 @@ namespace Infrastructure.Migrations
                 name: "apartmentImages");
 
             migrationBuilder.DropTable(
-                name: "apartmentsComments");
-
-            migrationBuilder.DropTable(
                 name: "ApartmentServices");
 
             migrationBuilder.DropTable(
@@ -520,7 +533,13 @@ namespace Infrastructure.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "notificationTransactions");
+
+            migrationBuilder.DropTable(
                 name: "royalDocuments");
+
+            migrationBuilder.DropTable(
+                name: "userapartmentsComments");
 
             migrationBuilder.DropTable(
                 name: "userApartmentsReacts");

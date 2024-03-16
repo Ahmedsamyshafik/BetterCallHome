@@ -4,9 +4,7 @@ using MediatR;
 
 namespace Core.Features.Apartments.Queries.Models
 {
-    public class GetNotificationApartmentQuery : IRequest<Response<NotificationApartmentResponse>>
+    public class GetPendingApartmentsQuery : IRequest<Response<PendingApartmentsResponse>>
     {
-        public string UserId { get; set; }
-
     }
 }

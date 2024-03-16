@@ -16,6 +16,9 @@
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
     <PackageReference Include="MediatR" Version="12.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="2.3.0" />
+    <PackageReference Include="Serilog.Sinks.MSSqlServer" Version="6.6.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,7 +29,6 @@
 
   <ItemGroup>
     <Folder Include="Features\Apartments\Commands\Results\" />
-    <Folder Include="Mapping\ApartmentMapping\QueryMapping\" />
   </ItemGroup>
 
 </Project>

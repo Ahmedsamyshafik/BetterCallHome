@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240316133703_addCloumCode")]
-    partial class addCloumCode
+    [Migration("20240320201458_ad")]
+    partial class ad
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,14 +36,14 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("ApartmentServicesId")
-                        .HasColumnType("int");
-
                     b.Property<int>("ApartmentVideoID")
                         .HasColumnType("int");
 
                     b.Property<string>("CoverImageName")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -92,11 +92,7 @@ namespace Infrastructure.Migrations
                     b.Property<int>("ApartmentID")
                         .HasColumnType("int");
 
-                    b.Property<string>("ImageName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImagePath")
+                    b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -105,29 +101,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("ApartmentID");
 
                     b.ToTable("apartmentImages");
-                });
-
-            modelBuilder.Entity("Domin.Models.ApartmentServices", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApartmentId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ServiceId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApartmentId");
-
-                    b.HasIndex("ServiceId");
-
-                    b.ToTable("ApartmentServices");
                 });
 
             modelBuilder.Entity("Domin.Models.ApartmentVideo", b =>
@@ -141,11 +114,7 @@ namespace Infrastructure.Migrations
                     b.Property<int>("ApartmentID")
                         .HasColumnType("int");
 
-                    b.Property<string>("VideoName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("VideoPath")
+                    b.Property<string>("VideoUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -232,10 +201,7 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<string>("imageName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("imagePath")
+                    b.Property<string>("imageUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -286,11 +252,7 @@ namespace Infrastructure.Migrations
                     b.Property<int>("ApartmentID")
                         .HasColumnType("int");
 
-                    b.Property<string>("ImageName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImagePath")
+                    b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -300,30 +262,6 @@ namespace Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("royalDocuments");
-                });
-
-            modelBuilder.Entity("Domin.Models.Service", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApartmentServicesId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Service");
                 });
 
             modelBuilder.Entity("Domin.Models.UserApartmentsComment", b =>
@@ -571,25 +509,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Apartment");
                 });
 
-            modelBuilder.Entity("Domin.Models.ApartmentServices", b =>
-                {
-                    b.HasOne("Domin.Models.Apartment", "Apartment")
-                        .WithMany("ApartmentServices")
-                        .HasForeignKey("ApartmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domin.Models.Service", "Service")
-                        .WithMany("ApartmentServices")
-                        .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Apartment");
-
-                    b.Navigation("Service");
-                });
-
             modelBuilder.Entity("Domin.Models.ApartmentVideo", b =>
                 {
                     b.HasOne("Domin.Models.Apartment", "Apartment")
@@ -720,8 +639,6 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domin.Models.Apartment", b =>
                 {
-                    b.Navigation("ApartmentServices");
-
                     b.Navigation("ApartmentVideo");
 
                     b.Navigation("Comments");
@@ -742,11 +659,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Reacts");
 
                     b.Navigation("Viewers");
-                });
-
-            modelBuilder.Entity("Domin.Models.Service", b =>
-                {
-                    b.Navigation("ApartmentServices");
                 });
 #pragma warning restore 612, 618
         }

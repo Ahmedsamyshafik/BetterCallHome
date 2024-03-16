@@ -15,7 +15,7 @@ namespace Core.Features.Users.Commands.Handlers
                     IRequestHandler<LoginUserCommand, Response<UserResponse>>,
                     IRequestHandler<ForgetPasswordUserCommand, Response<string>>,
                     IRequestHandler<ConfirmForgetPasswordUserCommand, Response<string>>,
-                    IRequestHandler<EditProfileStudentandOwnerCommand, Response<string>>,
+                    IRequestHandler<EditProfileUserCommand, Response<string>>,
                     IRequestHandler<ResetPasswordUserCommand, Response<string>>,
                     IRequestHandler<ChangePasswordUserCommand, Response<string>>
     {
@@ -51,11 +51,13 @@ namespace Core.Features.Users.Commands.Handlers
             if (!result.IsAuthenticated) return BadRequest<UserResponse>(Message: response.Message);
             //success?
             return Success(response);
+         
         }
 
         public async Task<Response<UserResponse>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
         {
             //mapping from loginUserCommand To LoginDTo
+         
             var paramater = _mapper.Map<LoginDTO>(request);
             //service To login
             var result = await _auth.Login(paramater);
@@ -104,12 +106,12 @@ namespace Core.Features.Users.Commands.Handlers
 
         }
 
-        public async Task<Response<string>> Handle(EditProfileStudentandOwnerCommand request, CancellationToken cancellationToken)
+        public async Task<Response<string>> Handle(EditProfileUserCommand request, CancellationToken cancellationToken)
         {
             //map to Application User
             var mapper = _mapper.Map<ApplicationUser>(request);  // password? oldPassword!! Img
-            //Service To Update 
-            string result = await _auth.UpdateStudentandOwnerProfile(mapper, request.Picture);
+            //Service To Update {send image package..}
+            string result = await _auth.UpdateStudentandOwnerProfile(mapper, request.Picture,request.RequestScheme,request.Requesthost);
             //testing for image
             //bool res = await _image.UploadAsync(request.Picture);
             //check service response 
@@ -126,6 +128,8 @@ namespace Core.Features.Users.Commands.Handlers
             }
             return Success("");
         }
+
+
         #endregion
 
     }

@@ -21,10 +21,6 @@ namespace Infrastructure.DTO
         public string Email { get; set; }
 
         [Required]
-        [AgeValidation]
-        public int Age { get; set; }
-
-        [Required]
         [MinLength(2)]
         [MaxLength(100)]
         public string College { get; set; }

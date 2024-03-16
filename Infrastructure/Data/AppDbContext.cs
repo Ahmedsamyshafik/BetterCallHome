@@ -15,8 +15,6 @@ namespace Infrastructure.Data
         public DbSet<ApartmentImages> apartmentImages { get; set; }
         public DbSet<RoyalDocument> royalDocuments { get; set; }
         public DbSet<ApartmentVideo> apartmentVideos { get; set; }
-        public DbSet<Service> Service { get; set; }
-        public DbSet<ApartmentServices> ApartmentServices { get; set; }
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
         public DbSet<View> views { get; set; }
         public DbSet<UserApartmentsReact> userApartmentsReacts { get; set; }

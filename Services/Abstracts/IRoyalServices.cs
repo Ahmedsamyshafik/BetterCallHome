@@ -4,6 +4,6 @@ namespace Services.Abstracts
 {
     public interface IRoyalServices
     {
-        Task<RoyalDocument> AddRoyal(string Royalname, string RoyalPath, int apartmentID);
+        Task<RoyalDocument> AddRoyal(string RoyalUrl, int apartmentID);
     }
 }

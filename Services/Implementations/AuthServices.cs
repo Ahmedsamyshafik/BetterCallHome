@@ -50,8 +50,10 @@ namespace Services.Implementations
             { // User with same email
                 return new UserDTO { Message = "Email Or Name is Already Registered" };
             }
+
             //maping from RegisterDTO to ApplicationUser
             var user = _mapper.Map<ApplicationUser>(model);
+            user.CodeConfirm = string.Empty;
             //Create User  
             var result = await _userManager.CreateAsync(user, model.Password);
             // Complete Comment and mapping
@@ -68,8 +70,8 @@ namespace Services.Implementations
             var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var encodedEmailToken = Encoding.UTF8.GetBytes(confirmEmailToken);
             var validEmailToken = WebEncoders.Base64UrlEncode(encodedEmailToken);
-            string url = $"{_configuration["Website:AppUrl"]}" + $"api/Account/confirmemailForBackEnd?userid={user.Id}&token={validEmailToken}";
-            SendConfirmEmail(user.Email, url);//Error?
+            string url = $"{_configuration["Website:AppUrl"]}" + $"api/Authentication/confirmemailForBackEnd?userid={user.Id}&token={validEmailToken}";
+            _mailService.SendConfirmEmail(user.Email, url);//Error?
             await _userManager.AddToRoleAsync(user, Constants.UserRole);
             //Create JWT
             var JwtSecuirtyToken = await CreateJwtToken(user);
@@ -129,6 +131,12 @@ namespace Services.Implementations
                 returnedUser.Email = model.Email;
                 return returnedUser;
             }
+            //check Confirming
+            if (!user.EmailConfirmed)
+            {
+                returnedUser.Message = "Not Confirmed!";
+                return returnedUser;
+            }
             var JwtSecuirtyToken = await CreateJwtToken(user);
             var roles = await _userManager.GetRolesAsync(user);
 
@@ -167,16 +175,17 @@ namespace Services.Implementations
             return false;
         }
 
-        public async Task<string> UpdateStudentandOwnerProfile(ApplicationUser user, IFormFile? img)
+        public async Task<string> UpdateStudentandOwnerProfile(ApplicationUser user, IFormFile? img, string requestSchema, HostString hostString)
         {
             var realUser = await _userManager.FindByEmailAsync(user.Email);
             if (realUser == null) return "No Account with This Email!";
             //check image
             if (img != null)
             {
-                var returned = await _media.UploadFileAsync(img, Constants.EditProfilePicture);
-                realUser.imagePath = returned.Path;
-                realUser.imageName = returned.Name;
+                //upload => return path , name ,Folder File
+                var returned = await _media.SavingImage(img, requestSchema, hostString, Constants.EditProfilePicture);
+                if (!returned.success) return $"Error=> {returned.message}";
+                realUser.imageUrl = returned.message;
             }
             //Name? Falidation about name here?
             var ExistOrNot = NameIsExist(user.UserName, user.Email);
@@ -213,66 +222,14 @@ namespace Services.Implementations
         {
             var result = await _mailService.ConfirmEmail(userId, token);
             return result;
-
-            #region Applying Single Responsibility Principle..  
-            ////  var user = await _userManager.FindByIdAsync(userId);
-            ////  if (user == null)
-            ////      return new UserManagerResponseDTO
-            ////      {
-            ////          IsSuccess = false,
-            ////          Message = "User not found"
-            ////      };
-            ////  //Decoding Token
-            ////  var decodedToken = WebEncoders.Base64UrlDecode(token);
-            ////  string normalToken = Encoding.UTF8.GetString(decodedToken);
-            ////  // Success Confirm
-            ////  var result = await _userManager.ConfirmEmailAsync(user, normalToken);
-            //  if (result.Succeeded)
-            //      return new UserManagerResponseDTO
-            //      {
-            //          Message = "Email confirmed successfully!",
-            //          IsSuccess = true,
-            //      };
-            //  // Invaild Confirm
-            //  return new UserManagerResponseDTO
-            //  {
-            //      IsSuccess = false,
-            //      Message = "Email did not confirm",
-            //      Errors = result.Errors.Select(e => e.Description)
-            //  };
-            #endregion 
-
-
         }
 
-        private void SendConfirmEmail(string EmailSentTo, string url)
-        {
-
-            _mailService.SendConfirmEmail(EmailSentTo, url);
-
-            #region Applying Single Responsibility Principle..  
-
-            //var email = new MimeMessage();
-            //email.From.Add(new MailboxAddress(_configuration["WebSite:FromName"], _configuration["WebSite:FromEmail"]));
-            //email.To.Add(MailboxAddress.Parse(EmailSentTo));
-            //email.Subject = "Account Confirm";
-            //var htmlPage = $"<h1>Confirm your email</h1><p>Please confirm your email by <a href='{url}'>Clicking here</a></p>";
-            //email.Body = new TextPart(TextFormat.Html) { Text = htmlPage };
-            //using var smtp = new MailKit.Net.Smtp.SmtpClient();
-            //smtp.Connect("smtp.gmail.com", 465, true);
-
-            //smtp.Authenticate(userName: _configuration["WebSite:FromEmail"], password: _configuration["WebSite:Password"]);
-            //smtp.Send(email);
-            //smtp.Disconnect(true);
-            #endregion
-
-        }
 
         #endregion
 
         #region Password
 
-        public async Task<UserManagerResponseDTO> ForgetPassword(string email) // Controller
+        public async Task<UserManagerResponseDTO> ForgetPassword(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
@@ -445,46 +402,6 @@ namespace Services.Implementations
                 };
             }
         }
-
-
-
-        //_mailService.SendResetPassword(EmailSentTo, url);
-
-        #region comments
-        //private void SendResetPassword(string EmailSentTo, string url)
-        //{
-        //    _mailService.SendResetPassword(EmailSentTo, url);
-
-        //    #region Applying Single Responsibility Principle..  
-        //    //var email = new MimeMessage();
-        //    //email.From.Add(new MailboxAddress(_configuration["WebSite:FromName"], _configuration["WebSite:FromEmail"]));
-        //    //email.To.Add(MailboxAddress.Parse(EmailSentTo));
-        //    //email.Subject = "Account Confirm";
-        //    //var htmlPage = $"<h1>Reset Password</h1><p>Reset your password by <a href='{url}'>Clicking here</a></p>";
-        //    //email.Body = new TextPart(TextFormat.Html) { Text = htmlPage };
-        //    //using var smtp = new MailKit.Net.Smtp.SmtpClient();
-        //    //smtp.Connect("smtp.gmail.com", 465, true);
-
-        //    //smtp.Authenticate(userName: _configuration["WebSite:FromEmail"], _configuration["WebSite:Password"]);
-        //    //smtp.Send(email);
-        //    //smtp.Disconnect(true);
-
-        //}
-
         #endregion
-
-
-
-
-        #endregion
-
-
-
-
-
-
-
-
-
     }
 }

@@ -16,7 +16,7 @@ namespace Services.Abstracts
         Task<UserManagerResponseDTO> ResetPassword(string email, string Password, string ConfrimPassword);
         Task<UserManagerResponseDTO> ChangePassword(string email, string oldPassword, string newPassword);
         bool NameIsExist(string name, string email);
-        Task<string> UpdateStudentandOwnerProfile(ApplicationUser user, IFormFile? img);
+        Task<string> UpdateStudentandOwnerProfile(ApplicationUser user, IFormFile? img,string requestSchema,HostString hostString);
         Task<ReturnedUserDataDto> GetUserData(string ViewerID, string ViewedID);
     }
 }
