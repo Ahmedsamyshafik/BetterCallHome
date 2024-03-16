@@ -1,7 +1,6 @@
 ﻿using BetterCallHomeWeb.Base;
 using Core.Features.Users.Commands.Models;
 using Core.Features.Users.Queries.Models;
-using Domin.ViewModel;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstracts;
@@ -69,7 +68,7 @@ namespace BetterCallHomeWeb.Controllers
         #region Password-Email
         // For me not FrontEnd !! 
         [HttpGet("[action]")]          //confirmemailForBackEnd
-        public async Task<IActionResult> confirmemailForBackEnd([FromQuery] string userid, [FromQuery] string token)
+        public async Task<IActionResult> confirmEmailForBackEnd([FromQuery] string userid, [FromQuery] string token)
         {
             if (string.IsNullOrWhiteSpace(userid) || string.IsNullOrWhiteSpace(token))
                 return NotFound();
@@ -82,35 +81,26 @@ namespace BetterCallHomeWeb.Controllers
             return BadRequest(result);
         }
 
-        //404//UserMangerResponse{message}
+
         [HttpPost("[action]")]
-        public async Task<IActionResult> ForgetPassword(ChangePasswordUserCommand command) // Send Email
+        public async Task<IActionResult> SendResetPassword(ForgetPasswordUserCommand command)//Send code to email
         {
+
+            var response = await Mediator.Send(command);
+            return NewResult(response);
+        }
+
+
+        [HttpPost("[action]")]
+        public async Task<IActionResult> ConfirmResetPassword(ConfirmForgetPasswordUserCommand command)
+        {
+
             var response = await Mediator.Send(command);
             return NewResult(response);
 
+
         }
 
-        //From Email!!
-        ////?? Redirct From  page ForgetPassword !
-        [HttpPost("[action]")]
-        public async Task<IActionResult> ResetPasswordFromEmailForBackEnd([FromForm] ReserPasswordVM model)
-        {
-
-            if (ModelState.IsValid)
-            {
-
-                var result = await _auth.ResetPasswordForEmail(model);
-                if (result.IsSuccess)
-                {
-                    return Ok(result.Message);
-                }
-                return BadRequest(result.Message);
-            }
-            return BadRequest("Some Properties are not valid :(");
-        }
-
-        //// Normal Reset Password..! 
         [HttpPost("[action]")]
         public async Task<IActionResult> ResetPassword(ResetPasswordUserCommand command)
         {
@@ -118,6 +108,13 @@ namespace BetterCallHomeWeb.Controllers
             return NewResult(response);
         }
 
+        [HttpPost("[action]")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordUserCommand command)
+        {
+            var response = await Mediator.Send(command);
+            return NewResult(response);
+        }
+        //change Password 
         #endregion
 
         #region Edit && GetAccount

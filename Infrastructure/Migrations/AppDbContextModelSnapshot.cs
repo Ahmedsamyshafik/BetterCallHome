@@ -165,6 +165,10 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("CodeConfirm")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("College")
                         .HasColumnType("nvarchar(max)");
 

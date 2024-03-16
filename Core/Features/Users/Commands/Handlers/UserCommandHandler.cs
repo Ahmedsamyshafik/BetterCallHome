@@ -9,13 +9,15 @@ using Services.Abstracts;
 
 namespace Core.Features.Users.Commands.Handlers
 {
+
     public class UserCommandHandler : ResponseHandler,
                     IRequestHandler<RegisterStudentCommand, Response<UserResponse>>,
                     IRequestHandler<LoginUserCommand, Response<UserResponse>>,
-
-                    IRequestHandler<ChangePasswordUserCommand, Response<string>>,
+                    IRequestHandler<ForgetPasswordUserCommand, Response<string>>,
+                    IRequestHandler<ConfirmForgetPasswordUserCommand, Response<string>>,
+                    IRequestHandler<EditProfileStudentandOwnerCommand, Response<string>>,
                     IRequestHandler<ResetPasswordUserCommand, Response<string>>,
-                    IRequestHandler<EditProfileStudentandOwnerCommand, Response<string>>
+                    IRequestHandler<ChangePasswordUserCommand, Response<string>>
     {
 
         #region Inject
@@ -69,10 +71,20 @@ namespace Core.Features.Users.Commands.Handlers
             return Success(response);
         }
 
-        public async Task<Response<string>> Handle(ChangePasswordUserCommand request, CancellationToken cancellationToken)
+        public async Task<Response<string>> Handle(ForgetPasswordUserCommand request, CancellationToken cancellationToken)
         {
-            //is Success Emailing
             var result = await _auth.ForgetPassword(request.Email);
+            if (result.IsSuccess)
+            {
+                return Success(result.Message);
+            }
+            return BadRequest<string>(result.Message);
+        }
+
+        public async Task<Response<string>> Handle(ConfirmForgetPasswordUserCommand request, CancellationToken cancellationToken)
+        {
+
+            var result = await _auth.ConfirmForgetPassword(request.email, request.code);
             if (result.IsSuccess)
             {
                 return Success(result.Message);
@@ -82,18 +94,13 @@ namespace Core.Features.Users.Commands.Handlers
 
         public async Task<Response<string>> Handle(ResetPasswordUserCommand request, CancellationToken cancellationToken)
         {
-            //mapping from ResetPasswordUserCommand To ResetPasswordDTO
-            var paramter = _mapper.Map<ResetPasswordDTO>(request);
-            var result = await _auth.ResetPassword(paramter);
+            // ResetPassword(string email, string Password, string ConfrimPassword);
+            var result = await _auth.ResetPassword(request.Email, request.NewPassword, request.ConfirmPassword);
             if (result.IsSuccess)
             {
-
                 return Success(result.Message);
             }
-            else
-            {
-                return BadRequest<string>(result.Message);
-            }
+            return BadRequest<string>(result.Message);
 
         }
 
@@ -110,7 +117,15 @@ namespace Core.Features.Users.Commands.Handlers
             return BadRequest<string>(result);
         }
 
-
+        public async Task<Response<string>> Handle(ChangePasswordUserCommand request, CancellationToken cancellationToken)
+        {
+            var result = await _auth.ChangePassword(request.Email, request.Password, request.NewPassword);
+            if (!result.IsSuccess)
+            {
+                return BadRequest<string>(result.Message);
+            }
+            return Success("");
+        }
         #endregion
 
     }

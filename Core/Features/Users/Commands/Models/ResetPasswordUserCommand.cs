@@ -11,10 +11,6 @@ namespace Core.Features.Users.Commands.Models
         public string Email { get; set; }
 
         [DataType(DataType.Password)]
-        [Required]
-        public string OldPassword { get; set; }
-
-        [DataType(DataType.Password)]
         [MinLength(6)]
         [MaxLength(255)]
         [Required]

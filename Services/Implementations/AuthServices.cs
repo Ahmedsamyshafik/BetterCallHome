@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Domin.Constant;
 using Domin.Models;
-using Domin.ViewModel;
+
 using Infrastructure.DTO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -283,14 +283,21 @@ namespace Services.Implementations
                     Message = "this email is invalid"
                 };
             }
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-
-
-            var encodedToken = Encoding.UTF8.GetBytes(token);
-            var validToken = WebEncoders.Base64UrlEncode(encodedToken);
-            //-- Here Front URL
-            string url = $"{_configuration["Website:AppUrl"]}" + $"ForgetPassword?email={email}&token={validToken}";
-            SendResetPassword(email, url); // Send Email ! 
+            Random generator = new Random();
+            string Code = generator.Next(0, 1000000).ToString("D6");
+            //Save in DB
+            user.CodeConfirm = Code;
+            var updating = await _userManager.UpdateAsync(user);
+            if (!updating.Succeeded)
+            {
+                return new UserManagerResponseDTO
+                {
+                    IsSuccess = false,
+                    Message = "Faild"
+                };
+            }
+            // Send Email ! 
+            _mailService.SendResetPassword(email, Code);
             return new UserManagerResponseDTO
             {
                 IsSuccess = true,
@@ -298,102 +305,186 @@ namespace Services.Implementations
             };
         }
 
-
-        // Controller  -- Resiting
-        public async Task<UserManagerResponseDTO> ResetPasswordForEmail(ReserPasswordVM model)
+        public async Task<UserManagerResponseDTO> ConfirmForgetPassword(string email, string code)
         {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null)
-                return new UserManagerResponseDTO
-                {
-                    IsSuccess = false,
-                    Message = "email not found"
-                };
-            if (model.ConfirmPassword != model.NewPassword) return new UserManagerResponseDTO { IsSuccess = false, Message = "Confirm Password dose not match New Password..!" };
-            //Decoding Token
-            var decodedToken = WebEncoders.Base64UrlDecode(model.Token);
-            string normalToken = Encoding.UTF8.GetString(decodedToken);
-
-            var result = await _userManager.ResetPasswordAsync(user, normalToken, model.NewPassword);
-            if (result.Succeeded)
-                return new UserManagerResponseDTO
-                {
-                    IsSuccess = true,
-                    Message = "Password has been reset successfully!"
-                };
-            return new UserManagerResponseDTO()
-            {
-                IsSuccess = false,
-                Message = "Something went wrnog :(",
-                Errors = result.Errors.Select(e => e.Description).ToArray()
-            };
-        }
-
-        private void SendResetPassword(string EmailSentTo, string url)
-        {
-
-            _mailService.SendResetPassword(EmailSentTo, url);
-
-
-            #region Applying Single Responsibility Principle..  
-            //var email = new MimeMessage();
-            //email.From.Add(new MailboxAddress(_configuration["WebSite:FromName"], _configuration["WebSite:FromEmail"]));
-            //email.To.Add(MailboxAddress.Parse(EmailSentTo));
-            //email.Subject = "Account Confirm";
-            //var htmlPage = $"<h1>Reset Password</h1><p>Reset your password by <a href='{url}'>Clicking here</a></p>";
-            //email.Body = new TextPart(TextFormat.Html) { Text = htmlPage };
-            //using var smtp = new MailKit.Net.Smtp.SmtpClient();
-            //smtp.Connect("smtp.gmail.com", 465, true);
-
-            //smtp.Authenticate(userName: _configuration["WebSite:FromEmail"], _configuration["WebSite:Password"]);
-            //smtp.Send(email);
-            //smtp.Disconnect(true);
-            #endregion
-
-        }
-
-
-        public async Task<UserManagerResponseDTO> ResetPassword(ResetPasswordDTO model)
-        {
-            //Check Email
-            var user = await _userManager.FindByEmailAsync(model.Email);
+            //user?
+            var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
             {
                 return new UserManagerResponseDTO
                 {
                     IsSuccess = false,
-                    Message = "No matched Email.."
+                    Message = "this email is invalid"
                 };
             }
-            // Confirm!=New
-            if (model.NewPassword != model.ConfirmPassword) return new UserManagerResponseDTO() { IsSuccess = false, Message = "Confirm Password dose not match New Password..!" };
-            var result = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
-            if (result.Succeeded)
+            var OriginalCode = user.CodeConfirm;
+            if (OriginalCode.Equals(code))
             {
-                return new UserManagerResponseDTO() { IsSuccess = true, Message = "Password Updated Successfuily" };
+                return new UserManagerResponseDTO
+                {
+                    IsSuccess = false,
+                    Message = "Success"
+                };
             }
             else
             {
-                // Global Errors
-                string errorMessage = "";
-                var errors = result.Errors.Select(e => e.Description).ToArray();
-                if (errors.Length > 0)
-                {
-                    errorMessage = string.Join(", ", errors);
-                }
-                return new UserManagerResponseDTO()
+                return new UserManagerResponseDTO
                 {
                     IsSuccess = false,
-                    Errors = result.Errors.Select(e => e.Description).ToArray(),
-                    Message = $" errors=> {errorMessage}",
+                    Message = "Not Same Code!"
+                };
+
+            }
+        }
+
+        public async Task<UserManagerResponseDTO> ResetPassword(string email, string Password, string ConfrimPassword)
+        {
+            //user
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return new UserManagerResponseDTO
+                {
+                    IsSuccess = false,
+                    Message = "this email is invalid"
+                };
+            }
+            var result = await _userManager.RemovePasswordAsync(user);
+            if (!result.Succeeded)
+            {
+                return new UserManagerResponseDTO
+                {
+                    IsSuccess = false,
+                    Message = "Some thing Gone Wrong!"
+                };
+            }
+            var response = await _userManager.AddPasswordAsync(user, Password);
+            if (response.Succeeded)
+            {
+                return new UserManagerResponseDTO
+                {
+                    IsSuccess = true,
+                    Message = "Success"
+                };
+            }
+            else
+            {
+
+                string msg = "";
+                foreach (var x in response.Errors)
+                {
+                    msg += $" '{x.Description}',";
+                }
+                return new UserManagerResponseDTO
+                {
+                    IsSuccess = true,
+                    Message = msg
+                };
+            }
+            //pass
+            throw new NotImplementedException();
+        }
+
+        public async Task<UserManagerResponseDTO> ChangePassword(string email, string oldPassword, string newPassword)
+        {
+            //user
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return new UserManagerResponseDTO
+                {
+                    IsSuccess = false,
+                    Message = "this email is invalid"
+                };
+            }
+            //change password
+            //check?
+            var pass = await _userManager.CheckPasswordAsync(user, oldPassword);
+            if (!pass)
+            {
+                return new UserManagerResponseDTO
+                {
+                    IsSuccess = false,
+                    Message = "invalid password"
+                };
+            }
+            var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+            if (!result.Succeeded)
+            {
+                string msg = "";
+                foreach (var x in result.Errors)
+                {
+                    msg += $" '{x.Description}', ";
+                }
+                return new UserManagerResponseDTO
+                {
+                    IsSuccess = false,
+                    Message = msg
+                };
+            }
+            else
+            {
+                var res = await _userManager.UpdateAsync(user);
+                if (!res.Succeeded)
+                {
+                    string msgs = "";
+                    foreach (var x in result.Errors)
+                    {
+                        msgs += $" '{x.Description}', ";
+                    }
+                    return new UserManagerResponseDTO
+                    {
+                        IsSuccess = false,
+                        Message = msgs
+                    };
+                }
+                return new UserManagerResponseDTO
+                {
+                    IsSuccess = true,
+                    Message = "Success"
                 };
             }
         }
 
+
+
+        //_mailService.SendResetPassword(EmailSentTo, url);
+
+        #region comments
+        //private void SendResetPassword(string EmailSentTo, string url)
+        //{
+        //    _mailService.SendResetPassword(EmailSentTo, url);
+
+        //    #region Applying Single Responsibility Principle..  
+        //    //var email = new MimeMessage();
+        //    //email.From.Add(new MailboxAddress(_configuration["WebSite:FromName"], _configuration["WebSite:FromEmail"]));
+        //    //email.To.Add(MailboxAddress.Parse(EmailSentTo));
+        //    //email.Subject = "Account Confirm";
+        //    //var htmlPage = $"<h1>Reset Password</h1><p>Reset your password by <a href='{url}'>Clicking here</a></p>";
+        //    //email.Body = new TextPart(TextFormat.Html) { Text = htmlPage };
+        //    //using var smtp = new MailKit.Net.Smtp.SmtpClient();
+        //    //smtp.Connect("smtp.gmail.com", 465, true);
+
+        //    //smtp.Authenticate(userName: _configuration["WebSite:FromEmail"], _configuration["WebSite:Password"]);
+        //    //smtp.Send(email);
+        //    //smtp.Disconnect(true);
+
+        //}
+
+        #endregion
 
 
 
 
         #endregion
+
+
+
+
+
+
+
+
+
     }
 }

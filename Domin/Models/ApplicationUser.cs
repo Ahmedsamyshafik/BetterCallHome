@@ -13,6 +13,7 @@ namespace Domin.Models
         public string? imagePath { get; set; }
         public string? imageName { get; set; }
         public int Counter { get; set; }
+        public string CodeConfirm { get; set; }
 
 
         // [ForeignKey("Apartments")]//Owner

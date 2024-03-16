@@ -111,7 +111,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = true,
         ValidIssuer = builder.Configuration["JWT:Issuer"],
         ValidateAudience = false,
-     //   ValidAudience = builder.Configuration["JWT:Audience"],
+        //   ValidAudience = builder.Configuration["JWT:Audience"],
         IssuerSigningKey =
         new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]))
     };
@@ -122,9 +122,10 @@ builder.Services.AddCors(corsOptions =>
     corsOptions.AddPolicy("MyPolicy", corsPolicyBuilder =>
     {
         corsPolicyBuilder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-        //WithOrignal("http://") React Port
+        corsPolicyBuilder.WithOrigins("http://localhost:3001");
     });
 });
+//WithOrignal("http://") React Port
 #endregion
 
 //---- Repo Services

@@ -73,15 +73,15 @@ namespace Services.Implementations
             smtp.Disconnect(true);
         }
 
-        public void SendResetPassword(string EmailSentTo, string url)
+        public void SendResetPassword(string EmailSentTo, string code)
         {
 
 
             var email = new MimeMessage();
             email.From.Add(new MailboxAddress(_configuration["WebSite:FromName"], _configuration["WebSite:FromEmail"]));
             email.To.Add(MailboxAddress.Parse(EmailSentTo));
-            email.Subject = "Account Confirm";
-            var htmlPage = $"<h1>Reset Password</h1><p>Reset your password by <a href='{url}'>Clicking here</a></p>";
+            email.Subject = "Reset Password";
+            var htmlPage = $"<h1>Reset Password</h1><p> your Reset password Code => {code}</p>";
             email.Body = new TextPart(TextFormat.Html) { Text = htmlPage };
             using var smtp = new MailKit.Net.Smtp.SmtpClient();
             smtp.Connect("smtp.gmail.com", 465, true);
