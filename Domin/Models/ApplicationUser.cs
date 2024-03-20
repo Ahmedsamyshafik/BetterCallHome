@@ -5,20 +5,21 @@ namespace Domin.Models
 {
     public class ApplicationUser : IdentityUser
     {
-      
+
         // name , phone , Email
         public string? College { get; set; }
         public string? University { get; set; }
         public string? Address { get; set; }
         public string Gender { get; set; }
         public string? imageUrl { get; set; }
+        public string? ImageName { get; set; }
         public int Counter { get; set; }
         public string CodeConfirm { get; set; }
 
+        //  [InverseProperty(nameof(Apartment.Owner))]
 
-        // [ForeignKey("Apartments")]//Owner
+        [ForeignKey("Apartments")]//Owner
         // public int UserApartmentId { get; set; }//
-        [InverseProperty(nameof(Apartment.Owner))]
         public virtual ICollection<Apartment>? OwnedApartment { get; set; }//Owner
 
 

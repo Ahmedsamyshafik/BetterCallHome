@@ -8,9 +8,9 @@ namespace Infrastructure.CustomValidation
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
 
-            string? Gender = value.ToString().ToLower();
+            var Gender = value;
             if (Gender == null) { return new ValidationResult("Gender must be only Female or male!"); }
-            if (Gender == GenderEnum.female.ToString() || Gender == GenderEnum.male.ToString())
+            if (Gender.ToString() == GenderEnum.female.ToString() || Gender.ToString() == GenderEnum.male.ToString())
             {
                 return ValidationResult.Success;
             }

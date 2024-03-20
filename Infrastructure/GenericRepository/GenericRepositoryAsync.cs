@@ -43,6 +43,7 @@ namespace Infrastructure.GenericRepository
             await _db.SaveChangesAsync();
 
         }
+
         public virtual async Task<T> AddAsync(T entity)
         {
             await _db.Set<T>().AddAsync(entity);
@@ -61,9 +62,11 @@ namespace Infrastructure.GenericRepository
 
         public virtual async Task DeleteAsync(T entity)
         {
+
             _db.Set<T>().Remove(entity);
             await _db.SaveChangesAsync();
         }
+
         public virtual async Task DeleteRangeAsync(ICollection<T> entities)
         {
             // not async ?  _db.Set<T>().RemoveRange(entities);
@@ -100,6 +103,15 @@ namespace Infrastructure.GenericRepository
         {
             return _db.Set<T>().AsQueryable();
 
+        }
+
+        public IEnumerable<T> GetTableAsIEnumerable()
+        {
+            return _db.Set<T>().AsEnumerable();
+        }
+        public IList<T> GetTableAsList()
+        {
+            return _db.Set<T>().ToList();
         }
 
         public virtual async Task UpdateRangeAsync(ICollection<T> entities)

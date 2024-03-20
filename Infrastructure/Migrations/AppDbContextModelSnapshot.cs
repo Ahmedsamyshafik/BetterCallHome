@@ -36,7 +36,13 @@ namespace Infrastructure.Migrations
                     b.Property<int>("ApartmentVideoID")
                         .HasColumnType("int");
 
+                    b.Property<string>("Apartments")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("CoverImageName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CoverImageUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("CreatedAt")
@@ -93,6 +99,10 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ApartmentID");
@@ -110,6 +120,10 @@ namespace Infrastructure.Migrations
 
                     b.Property<int>("ApartmentID")
                         .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("VideoUrl")
                         .IsRequired()
@@ -160,6 +174,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Gender")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
@@ -250,6 +267,10 @@ namespace Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -543,7 +564,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domin.Models.Apartment", "Apartment")
                         .WithMany("Comments")
                         .HasForeignKey("ApartmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domin.Models.ApplicationUser", "user")

@@ -11,13 +11,14 @@ namespace Core.Features.Users.Commands.Handlers
 {
 
     public class UserCommandHandler : ResponseHandler,
-                    IRequestHandler<RegisterStudentCommand, Response<UserResponse>>,
+                    IRequestHandler<RegisterUserCommand, Response<UserResponse>>,
                     IRequestHandler<LoginUserCommand, Response<UserResponse>>,
                     IRequestHandler<ForgetPasswordUserCommand, Response<string>>,
                     IRequestHandler<ConfirmForgetPasswordUserCommand, Response<string>>,
                     IRequestHandler<EditProfileUserCommand, Response<string>>,
                     IRequestHandler<ResetPasswordUserCommand, Response<string>>,
-                    IRequestHandler<ChangePasswordUserCommand, Response<string>>
+                    IRequestHandler<ChangePasswordUserCommand, Response<string>>,
+                    IRequestHandler<DeleteUserCommand, Response<string>>
     {
 
         #region Inject
@@ -37,7 +38,7 @@ namespace Core.Features.Users.Commands.Handlers
 
         #region Handle Function
 
-        public async Task<Response<UserResponse>> Handle(RegisterStudentCommand request, CancellationToken cancellationToken)
+        public async Task<Response<UserResponse>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
             // (mapping)  RegisterUserCommand => RegisterDTO
             var paramater = _mapper.Map<RegisterDTO>(request);
@@ -50,14 +51,15 @@ namespace Core.Features.Users.Commands.Handlers
             //if faild
             if (!result.IsAuthenticated) return BadRequest<UserResponse>(Message: response.Message);
             //success?
+            // response.Role = await _auth.GetUserMaxRole(response.userId);
             return Success(response);
-         
+
         }
 
         public async Task<Response<UserResponse>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
         {
             //mapping from loginUserCommand To LoginDTo
-         
+
             var paramater = _mapper.Map<LoginDTO>(request);
             //service To login
             var result = await _auth.Login(paramater);
@@ -109,9 +111,10 @@ namespace Core.Features.Users.Commands.Handlers
         public async Task<Response<string>> Handle(EditProfileUserCommand request, CancellationToken cancellationToken)
         {
             //map to Application User
+
             var mapper = _mapper.Map<ApplicationUser>(request);  // password? oldPassword!! Img
             //Service To Update {send image package..}
-            string result = await _auth.UpdateStudentandOwnerProfile(mapper, request.Picture,request.RequestScheme,request.Requesthost);
+            string result = await _auth.UpdateProfile(mapper, request.Picture, request.RequestScheme, request.Requesthost);
             //testing for image
             //bool res = await _image.UploadAsync(request.Picture);
             //check service response 
@@ -127,6 +130,17 @@ namespace Core.Features.Users.Commands.Handlers
                 return BadRequest<string>(result.Message);
             }
             return Success("");
+        }
+
+        public async Task<Response<string>> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+        {
+
+            //Service?
+            var result = await _auth.DeleteUser(request.UserId);
+            //check id? not found
+            if (result == "not found") return NotFound<string>("No User with this Id");
+            if (result == "Not Confirmed!") return NotFound<string>("Not Confirmed!");
+            return Success(result);
         }
 
 

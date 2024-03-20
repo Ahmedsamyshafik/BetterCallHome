@@ -6,4 +6,9 @@
         male = 0,
         female = 1
     }
+    public enum TypeEnum
+    {
+        user = 0,
+        owner = 1
+    }
 }

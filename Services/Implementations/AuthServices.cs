@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Services.Abstracts;
@@ -21,16 +22,21 @@ namespace Services.Implementations
     {
         #region InJect
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _configuration;
         private readonly IMailService _mailService;
         private readonly IMapper _mapper;
         private readonly IGlobalErrorResponse _GlobalError;
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IUploadingMedia _media;
+        private readonly IImagesServices _image;
+        private readonly IApartmentServices _apartment;
+
 
 
         public AuthService(UserManager<ApplicationUser> userManager, IConfiguration configuration, IMailService mailService,
-            IMapper mapper, IGlobalErrorResponse globalError, IWebHostEnvironment hostingEnvironment, IUploadingMedia media)
+            IMapper mapper, IGlobalErrorResponse globalError, IWebHostEnvironment hostingEnvironment, IUploadingMedia media
+            , RoleManager<IdentityRole> roleManager, IImagesServices image, IApartmentServices apartment)
         {
             _userManager = userManager;
             _configuration = configuration;
@@ -39,6 +45,9 @@ namespace Services.Implementations
             _GlobalError = globalError;
             _hostingEnvironment = hostingEnvironment;
             _media = media;
+            _roleManager = roleManager;
+            _image = image;
+            _apartment = apartment;
         }
         #endregion
 
@@ -56,6 +65,7 @@ namespace Services.Implementations
             user.CodeConfirm = string.Empty;
             //Create User  
             var result = await _userManager.CreateAsync(user, model.Password);
+
             // Complete Comment and mapping
             if (!result.Succeeded)
             {
@@ -66,20 +76,24 @@ namespace Services.Implementations
                 }
                 return new UserDTO { Message = Es };
             }
+            await _userManager.UpdateAsync(user);//To Make Sure thier is id!
             //ConfirmEmail
             var confirmEmailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var encodedEmailToken = Encoding.UTF8.GetBytes(confirmEmailToken);
             var validEmailToken = WebEncoders.Base64UrlEncode(encodedEmailToken);
             string url = $"{_configuration["Website:AppUrl"]}" + $"api/Authentication/confirmemailForBackEnd?userid={user.Id}&token={validEmailToken}";
             _mailService.SendConfirmEmail(user.Email, url);//Error?
-            await _userManager.AddToRoleAsync(user, Constants.UserRole);
+            //Seed Role
+            var y = await _userManager.AddToRoleAsync(user, model.UserType);
+            await _userManager.UpdateAsync(user);
             //Create JWT
-            var JwtSecuirtyToken = await CreateJwtToken(user);
+            //var JwtSecuirtyToken = await CreateJwtToken(user);
             var res = _mapper.Map<UserDTO>(user);
-            res.Expier = JwtSecuirtyToken.ValidTo;
-            res.Role = Constants.UserRole;
-            res.Token = new JwtSecurityTokenHandler().WriteToken(JwtSecuirtyToken);
+            //  res.Expier = JwtSecuirtyToken.ValidTo;
+            res.Role = model.UserType;//response ?
+            //res.Token = new JwtSecurityTokenHandler().WriteToken(JwtSecuirtyToken);
             res.IsAuthenticated = true;
+            res.UserId = user.Id;
             return res;
         }
 
@@ -159,14 +173,14 @@ namespace Services.Implementations
             returned.IsAuthenticated = true;
             returned.Expier = JwtSecuirtyToken.ValidTo;
             returned.Token = new JwtSecurityTokenHandler().WriteToken(JwtSecuirtyToken);
-
+            returned.UserId = user.Id;
             return returned;
         }
 
 
         #endregion
 
-        #region Services
+        #region Services(NameIsExist,Up,UpdateProfile,GetUserData,GetAllUsers)
 
         public bool NameIsExist(string name, string email)
         {
@@ -175,10 +189,11 @@ namespace Services.Implementations
             return false;
         }
 
-        public async Task<string> UpdateStudentandOwnerProfile(ApplicationUser user, IFormFile? img, string requestSchema, HostString hostString)
+        public async Task<string> UpdateProfile(ApplicationUser user, IFormFile? img, string requestSchema, HostString hostString)
         {
             var realUser = await _userManager.FindByEmailAsync(user.Email);
             if (realUser == null) return "No Account with This Email!";
+            if (!realUser.EmailConfirmed) return "Not Confirmed!";
             //check image
             if (img != null)
             {
@@ -186,6 +201,7 @@ namespace Services.Implementations
                 var returned = await _media.SavingImage(img, requestSchema, hostString, Constants.EditProfilePicture);
                 if (!returned.success) return $"Error=> {returned.message}";
                 realUser.imageUrl = returned.message;
+                realUser.ImageName = returned.name;
             }
             //Name? Falidation about name here?
             var ExistOrNot = NameIsExist(user.UserName, user.Email);
@@ -202,18 +218,118 @@ namespace Services.Implementations
 
         public async Task<ReturnedUserDataDto> GetUserData(string ViewerID, string ViewedID)
         {
-            var userdb = await _userManager.FindByIdAsync(ViewerID);
+            var emailConfirm = await _userManager.FindByIdAsync(ViewerID);
+            if (!emailConfirm.EmailConfirmed) return new ReturnedUserDataDto() { Message = "Not Confirmed!" };
+            var userdb = await _userManager.FindByIdAsync(ViewedID);
             if (userdb == null) return new ReturnedUserDataDto { Message = "User Not Founded" };
-            userdb.Counter++;
-            var result = await _userManager.UpdateAsync(userdb);
-            if (!result.Succeeded) return new ReturnedUserDataDto { Message = "Faild" };
-            if (ViewedID == ViewerID) // Not increase views by him self
-                return new ReturnedUserDataDto { Message = "Success", user = userdb };
+            if (ViewedID != ViewerID)
+            {
+                userdb.Counter++;
+                var result = await _userManager.UpdateAsync(userdb);
+                if (!result.Succeeded) return new ReturnedUserDataDto { Message = "Faild" };
+            }
             return new ReturnedUserDataDto { Message = "Success", user = userdb, OperationCount = userdb.Counter };
+
 
         }
 
+        public async Task<string> GetUserMaxRole(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles.Contains(Constants.AdminRole))
+            {
+                return Constants.AdminRole;
+            }
+            if (roles.Contains(Constants.OwnerRole))
+            {
+                return Constants.OwnerRole;
+            }
+            if (roles.Contains(Constants.UserRole))
+            {
+                return Constants.UserRole;
+            }
 
+            return "";
+        }
+
+        public async Task<List<GetAllUsersResponse>> GetAllUsers(string? search)
+        {
+            var usersList = await _userManager.Users.ToListAsync();
+            if (search != null)
+            {
+                usersList = usersList.Where(x => x.UserName.Contains(search)).ToList();
+            }
+            var response = new List<GetAllUsersResponse>();
+
+            foreach (var user in usersList)
+            {
+
+                var userRole = await _userManager.GetRolesAsync(user);
+                if (userRole.Contains(Constants.AdminRole)) continue;
+                var res = new GetAllUsersResponse();
+                if (userRole.Contains(Constants.OwnerRole))
+                {
+                    res.Role = Constants.OwnerRole;
+                }
+                else
+                {
+                    res.Role = Constants.UserRole;
+                }
+                res.Phone = user.PhoneNumber;
+                res.Name = user.UserName;
+                res.Image = user.imageUrl;
+                res.userId = user.Id;
+                response.Add(res);
+            }
+            return response;
+        }
+
+        #endregion
+
+        #region (DeleteUserFromAdmin)
+
+        public async Task<string> DeleteUser(string userId)
+        {
+            //check id?
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return "not found";
+            if (!user.EmailConfirmed) return "Not Confirmed!";
+
+            _image.DeleteAccountPic(user.ImageName);
+
+            var userRole = await _userManager.GetRolesAsync(user);
+            if (userRole.Contains(Constants.UserRole))
+            {//if student?=> Delete from apartment ! 
+
+                //Delete From Apartment?!!*** TODO when it
+            }
+            if (userRole.Contains(Constants.OwnerRole))
+            { //if Owner?=> Delete img apartments + students from apartment
+                //Get owner apartments
+                var apartments = await _apartment.GetOwnerApartmentsAsList(userId);
+
+                if (apartments.Count() > 0)
+                {
+                    foreach (var apartment in apartments)
+                    {
+                        var x = await _apartment.GetApartment(apartment.Id);
+                        if (x != null)
+                        {
+                            await _apartment.DeleteApartmentFilesOnly(apartment);
+                            //  await _apartment.DeleteApartmentAsync(apartment);
+                        }
+
+
+                    }
+                }
+
+                //Delete Students!!!*** ToDo when it
+            }
+            //Delete
+            await _userManager.DeleteAsync(user);
+            return "";
+        }
         #endregion
 
         #region Email
@@ -279,7 +395,7 @@ namespace Services.Implementations
             {
                 return new UserManagerResponseDTO
                 {
-                    IsSuccess = false,
+                    IsSuccess = true,
                     Message = "Success"
                 };
             }
@@ -352,6 +468,14 @@ namespace Services.Implementations
                 {
                     IsSuccess = false,
                     Message = "this email is invalid"
+                };
+            }
+            if (!user.EmailConfirmed)
+            {
+                return new UserManagerResponseDTO
+                {
+                    IsSuccess = false,
+                    Message = "Not Confirmed!"
                 };
             }
             //change password

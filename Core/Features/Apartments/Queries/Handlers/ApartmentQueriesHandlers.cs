@@ -2,6 +2,7 @@
 using Core.Bases;
 using Core.Features.Apartments.Queries.Models;
 using Core.Features.Apartments.Queries.Results;
+using Core.Wrappers;
 using Domin.Models;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -12,7 +13,7 @@ namespace Core.Features.Apartments.Queries.Handlers
 {
     public class ApartmentQueriesHandlers : ResponseHandler,
         IRequestHandler<GetNotificationApartmentQuery, Response<NotificationApartmentResponse>>,
-        IRequestHandler<GetPendingApartmentsQuery, Response<PendingApartmentsResponse>>
+        IRequestHandler<GetPendingApartmentsQuery, PaginatedResult<GetPendingApartmentsPaginationResponse>>
     {
         #region Fields
         private readonly UserManager<ApplicationUser> _userManager;
@@ -43,6 +44,7 @@ namespace Core.Features.Apartments.Queries.Handlers
             //valid userid
             var user = await _userManager.FindByIdAsync(request.UserId);
             if (user == null) return BadRequest<NotificationApartmentResponse>();
+            if (!user.EmailConfirmed) return BadRequest<NotificationApartmentResponse>("Not Confirmed!");
             //get views
             var userViews = _viewServices.GetAccountViews(request.UserId);
             //---get likes---
@@ -68,44 +70,16 @@ namespace Core.Features.Apartments.Queries.Handlers
 
         }
 
-        public async Task<Response<PendingApartmentsResponse>> Handle(GetPendingApartmentsQuery request, CancellationToken cancellationToken)
+        public async Task<PaginatedResult<GetPendingApartmentsPaginationResponse>> Handle(GetPendingApartmentsQuery request, CancellationToken cancellationToken)
         {
-            //Get Apartments (Publish=Flase)
-            var apartments = await _apartmentServices.GetPendingApartmentd();
-            //Get Apartment Owner
-            List<string> ownersId = new();
-            foreach (var ownerId in apartments)
-            {
-                ownersId.Add(ownerId.OwnerId);
-            }
-            List<ApplicationUser> owners = new();
-            foreach (var userID in ownersId)
-            {
-                owners.Add(await _userManager.FindByIdAsync(userID));
-            }
-            //mapp owner and apartment together 
-            List<TempMappingApartmentsOwnersToPendint> temp = new();
-            for (int i = 0; i < apartments.Count(); i++)
-            {
-                TempMappingApartmentsOwnersToPendint one = new()
-                {
-                    Apartment = apartments[i],
-                    user = owners[i]
-                };
-                temp.Add(one);
-            }
-            var result = new List<PendingCollection>();
-            foreach (var res in temp)
-            {
-                var x = _mapper.Map<PendingCollection>(res);
-                result.Add(x);
-            }
-            var response = new PendingApartmentsResponse() { PendingApartments = result };
-            return Success(response);
-            //Mapping Data
-            //map from TempMappingApartmentOwnersToPendint To PendingApartmentsResponse
-            //   var response = _mapper.Map<List<PendingApartmentsResponse>>(temp);
-            //Return
+            var test = _apartmentServices.getpaginate(request.Search);
+            //List<GetPendingApartmentsPaginationResponse> l = new();
+            //PaginatedResult<GetPendingApartmentsPaginationResponse> x = new(data: l);
+            //return x;
+            var paginationList = await _mapper.ProjectTo<GetPendingApartmentsPaginationResponse>(test)
+                .ToPaginatedListAsync(request.PageNumber, request.PageSize);
+
+            return paginationList;
         }
 
         private async Task<List<ReturnedNotify>> HandleMapping(List<UserApartmentsComment> comments, List<UserApartmentsReact> reacts, List<View> views)

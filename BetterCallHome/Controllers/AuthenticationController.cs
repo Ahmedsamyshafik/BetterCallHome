@@ -26,7 +26,7 @@ namespace BetterCallHomeWeb.Controllers
         #region Login-Register
 
         [HttpPost("[action]")]
-        public async Task<IActionResult> Register([FromForm] RegisterStudentCommand command)
+        public async Task<IActionResult> Register([FromForm] RegisterUserCommand command)
         {
             var response = await Mediator.Send(command);
             return NewResult(response);

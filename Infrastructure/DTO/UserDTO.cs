@@ -10,6 +10,8 @@ namespace Infrastructure.DTO
         [MaxLength(100)]
         public string UserName { get; set; }
 
+        public string UserId { get; set; }
+
         [Required]
         [StringLength(11)]
         [PhoneValidation]

@@ -8,7 +8,7 @@ namespace Domin.Models
         [Key]
         public int Id { get; set; }
         public string ImageUrl { get; set; }
-
+        public string Name { get; set; }
         [ForeignKey("Apartment")]
         public int ApartmentID { get; set; }
         public Apartment Apartment { get; set; }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Core.Bases;
 using Core.Features.Apartments.Commands.Models;
+using Core.Features.Apartments.Commands.Results;
 using Domin.Constant;
 using Domin.Models;
 using MediatR;
@@ -10,9 +11,10 @@ using Services.Abstracts;
 namespace Core.Features.Apartments.Commands.Handlers
 {
     public class ApartmentCommandHandler : ResponseHandler,
-                    IRequestHandler<AddApartmentCommand, Response<string>>,
+                    IRequestHandler<AddApartmentCommand, Response<AddApartmentResponse>>,
                     IRequestHandler<AddCommentApartmentCommand, Response<string>>,
-                    IRequestHandler<AddReactApartmentCommand, Response<string>>
+                    IRequestHandler<AddReactApartmentCommand, Response<string>>,
+                    IRequestHandler<PendingApartmentAction, Response<string>>
     {
         #region Fields
         private readonly IApartmentServices _apartmentServices;
@@ -43,14 +45,14 @@ namespace Core.Features.Apartments.Commands.Handlers
         #endregion
 
 
-        #region MyRegion
+        #region Handle Functions
 
-        public async Task<Response<string>> Handle(AddApartmentCommand request, CancellationToken cancellationToken)
+        public async Task<Response<AddApartmentResponse>> Handle(AddApartmentCommand request, CancellationToken cancellationToken)
         {
             //valid userID!
             var user = await _userManager.FindByIdAsync(request.UserId);
-            if (user == null) return BadRequest<string>("User Not Found!");
-
+            if (user == null) return BadRequest<AddApartmentResponse>("User Not Found!");
+            if (!user.EmailConfirmed) return BadRequest<AddApartmentResponse>("Not Confirmed!");
             //mapping from AddApartmentCommand To Apartment
             var mapper = _mapper.Map<Apartment>(request);
             //Service To Add Apartment
@@ -62,8 +64,8 @@ namespace Core.Features.Apartments.Commands.Handlers
                 if (request.video != null)
                 {
                     var videoPath = await _media.SavingImage(request.video, request.RequestScheme, request.Requesthost, Constants.ApartmentVids);
-                    if (!videoPath.success) return BadRequest<string>("Faild in saving video");
-                    var x = await _videos.AddVideo(videoPath.message, apart.Id);
+                    if (!videoPath.success) return BadRequest<AddApartmentResponse>("Faild in saving video");
+                    var x = await _videos.AddVideo(videoPath.message, apart.Id, videoPath.name);
                     apart.ApartmentVideoID = x.Id;
                 }
                 if (request.Pics != null)
@@ -74,32 +76,33 @@ namespace Core.Features.Apartments.Commands.Handlers
                         if (Pic.Length > 0)
                         {
                             var PicsPaths = await _media.SavingImage(Pic, request.RequestScheme, request.Requesthost, Constants.ApartmentPics);
-                            if (!PicsPaths.success) return BadRequest<string>("Faild To Save images");
-                            await _images.AddImage(PicsPaths.message, apart.Id);
+                            if (!PicsPaths.success) return BadRequest<AddApartmentResponse>("Faild To Save images");
+                            await _images.AddImage(PicsPaths.message, apart.Id, PicsPaths.name);
                         }
                     }
                     // Cover!
                     if (request.CoverImage != null)
                     {
                         var CoverImage = await _media.SavingImage(request.CoverImage, request.RequestScheme, request.Requesthost, Constants.ApartmentPics);
-                        if (!CoverImage.success) return BadRequest<string>("Faild in saving Cover Image");
-                        apart.CoverImageName = CoverImage.message;
+                        if (!CoverImage.success) return BadRequest<AddApartmentResponse>("Faild in saving Cover Image");
+                        apart.CoverImageName = CoverImage.name;
+                        apart.CoverImageUrl = CoverImage.message;
                     }
                 }
                 if (request.RoyalDocument != null)
                 {
                     var RoyalPath = await _media.SavingImage(request.RoyalDocument, request.RequestScheme, request.Requesthost, Constants.ApartmentRoyalDocPics);
-                    if (!RoyalPath.success) return BadRequest<string>("Faild in saving Cover Image");
-                    var x = await _royal.AddRoyal(RoyalPath.message, apart.Id);
+                    if (!RoyalPath.success) return BadRequest<AddApartmentResponse>("Faild in saving Cover Image");
+                    var x = await _royal.AddRoyal(RoyalPath.message, apart.Id, RoyalPath.name);
                     apart.Document = x.Id;
                 }
                 await _apartmentServices.UpdateApartmentAsync(apart);
-                return Success("");
+                var returned = new AddApartmentResponse() { id = apart.Id };
+                return Success(returned);
             }
             catch (Exception ex)
             {
-                var exap = ex;
-                return BadRequest<string>("Faild");
+                return BadRequest<AddApartmentResponse>("Faild");
             }
         }
 
@@ -108,6 +111,8 @@ namespace Core.Features.Apartments.Commands.Handlers
             //validation userid-apartmentid
             var user = await _userManager.FindByIdAsync(request.UserID);
             if (user == null) return BadRequest<string>("No user with this id..!");
+            if (!user.EmailConfirmed) return BadRequest<string>("Not Confirmed!");
+
             var apartment = await _apartmentServices.GetApartment(request.ApartmentID);
             if (apartment == null) return BadRequest<string>("No Apartment with this id..!");
             //mapping
@@ -132,6 +137,8 @@ namespace Core.Features.Apartments.Commands.Handlers
             //validation userid-apartmentid
             var user = await _userManager.FindByIdAsync(request.UserID);
             if (user == null) return BadRequest<string>("No user with this id..!");
+            if (!user.EmailConfirmed) return BadRequest<string>("Not Confirmed!");
+
             var apartment = await _apartmentServices.GetApartment(request.ApartmentID);
             if (apartment == null) return BadRequest<string>("No Apartment with this id..!");
             //mapping
@@ -153,6 +160,17 @@ namespace Core.Features.Apartments.Commands.Handlers
             return BadRequest<string>("Can't React,You Already reacted.");
 
 
+        }
+
+        public async Task<Response<string>> Handle(PendingApartmentAction request, CancellationToken cancellationToken)
+        {
+            //valid apartment id
+
+            var apartment = await _apartmentServices.GetApartment(request.ApartmentID);
+            if (apartment == null) return BadRequest<string>("No Apartment with this id! ");
+            //do operation in service + Delete images if deleted!
+            await _apartmentServices.HandlePendingApartments(request.Accept, apartment);
+            return Success("");
         }
         #endregion
 

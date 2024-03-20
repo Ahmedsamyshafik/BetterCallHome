@@ -16,6 +16,7 @@ namespace Domin.Models
         public int Likes { get; set; }
         public bool Publish { get; set; }
         public string? CoverImageName { get; set; }
+        public string? CoverImageUrl { get; set; }
         public DateTime? CreatedAt { get; set; }
 
         // [ForeignKey("RoyalDocument")]

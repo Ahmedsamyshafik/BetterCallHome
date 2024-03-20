@@ -1,6 +1,8 @@
 ﻿using BetterCallHomeWeb.Base;
 using Core.Features.Apartments.Commands.Models;
 using Core.Features.Apartments.Queries.Models;
+using Domin.Constant;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace BetterCallHomeWeb.Areas
 {
@@ -11,7 +13,7 @@ namespace BetterCallHomeWeb.Areas
     {
 
         [HttpPost("[action]")]
-        // [Authorize(Roles = Constants.OwnerRole)]
+        [Authorize(Roles = Constants.OwnerRole)]
         public async Task<IActionResult> AddApartment([FromForm] AddApartmentDTO command)
         {
             var send = new AddApartmentCommand()
@@ -37,6 +39,7 @@ namespace BetterCallHomeWeb.Areas
 
 
         [HttpGet("[action]")]
+        [Authorize]
         public async Task<IActionResult> GetNotifications([FromQuery] GetNotificationApartmentQuery Query)
         {
             var response = await Mediator.Send(Query);

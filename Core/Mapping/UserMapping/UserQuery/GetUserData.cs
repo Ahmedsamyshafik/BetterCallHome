@@ -11,7 +11,9 @@ namespace Core.Mapping.UserMapping
             // UserName Phone Age  College  University  Gender  Message  IsAuthenticated   Roles   
 
             CreateMap<ApplicationUser, UserDataResponse>().
-                ForMember(dest => dest.imagePath, opt => opt.MapFrom(src => src.imageUrl));
+                ForMember(dest => dest.imagePath, opt => opt.MapFrom(src => src.imageUrl)).
+                ForMember(dest => dest.phone, opt => opt.MapFrom(src => src.PhoneNumber)).
+                ForMember(dest => dest.UserID, opt => opt.MapFrom(src => src.Id));
         }
     }
 }

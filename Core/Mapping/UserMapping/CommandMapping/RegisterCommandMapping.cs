@@ -10,7 +10,7 @@ namespace Core.Mapping.UserMapping
         public void RegisterUserComandToResgisterDTo_CommandMapping()
         {
             // from RegisterCommand To RegisterDTO
-            CreateMap<RegisterStudentCommand, RegisterDTO>();
+            CreateMap<RegisterUserCommand, RegisterDTO>();
 
         }
         public void UserDTOToUserResponse_CommandMapping()
@@ -21,7 +21,8 @@ namespace Core.Mapping.UserMapping
         public void UserDtoToUserResponse_CommandMapping()
         {
             //From UserDTO to UserResponse
-            CreateMap<UserDTO, UserResponse>();
+            CreateMap<UserDTO, UserResponse>().
+                ForMember(dest => dest.userId, opt => opt.MapFrom(src => src.UserId));
         }
         public void RegisteDtoToApplicationUser_CommandMapping()
         {

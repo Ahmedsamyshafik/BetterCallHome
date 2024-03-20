@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Core.Features.Users.Commands.Models
 {
-    public class RegisterStudentCommand : IRequest<Response<UserResponse>>
+    public class RegisterUserCommand : IRequest<Response<UserResponse>>
     {
 
         [Required]
@@ -28,6 +28,10 @@ namespace Core.Features.Users.Commands.Models
         [Required]
         [GenderValidation]
         public string Gender { get; set; }
+
+        [Required]
+        [UserTypeValidation]
+        public string UserType { get; set; }
 
         [Required]
         [DataType(DataType.Password)]

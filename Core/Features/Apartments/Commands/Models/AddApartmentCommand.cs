@@ -1,10 +1,11 @@
 ﻿using Core.Bases;
+using Core.Features.Apartments.Commands.Results;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
 namespace Core.Features.Apartments.Commands.Models
 {
-    public class AddApartmentCommand : IRequest<Response<string>>
+    public class AddApartmentCommand : IRequest<Response<AddApartmentResponse>>
     {
 
         public string Name { get; set; }

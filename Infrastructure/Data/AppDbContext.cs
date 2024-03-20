@@ -35,6 +35,11 @@ namespace Infrastructure.Data
                 .HasForeignKey(u => u.CurrentLivingInId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Apartment>().
+                HasOne(o => o.Owner).
+                WithMany(a => a.OwnedApartment).
+                OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<UserApartmentsReact>()
                 .HasOne(r => r.user)
                 .WithMany(u => u.Reacts)
@@ -57,7 +62,7 @@ namespace Infrastructure.Data
                 .HasOne(c => c.Apartment)
                 .WithMany(a => a.Comments)
                 .HasForeignKey(c => c.ApartmentId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
 
             base.OnModelCreating(modelBuilder);

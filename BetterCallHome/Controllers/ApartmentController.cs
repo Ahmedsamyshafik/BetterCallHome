@@ -1,13 +1,16 @@
 ﻿using BetterCallHomeWeb.Base;
 using Core.Features.Apartments.Commands.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BetterCallHomeWeb.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ApartmentController : AppControllerBase
     {
+
         [HttpPost("[action]")]
         public async Task<IActionResult> AddReact([FromBody] AddReactDTO command)
         {
@@ -20,7 +23,8 @@ namespace BetterCallHomeWeb.Controllers
             var response = await Mediator.Send(send);
             return NewResult(response);
         }
-        
+
+
         [HttpPost("[action]")]
         public async Task<IActionResult> AddComment([FromBody] AddCommentDTO command)
         {

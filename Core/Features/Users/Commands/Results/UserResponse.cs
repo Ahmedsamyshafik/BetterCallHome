@@ -9,7 +9,7 @@
 
         public string Email { get; set; }
 
-        public int Age { get; set; }
+        public string userId { get; set; }
 
         public string? College { get; set; }
 

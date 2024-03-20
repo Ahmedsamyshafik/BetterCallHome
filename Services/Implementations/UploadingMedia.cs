@@ -27,6 +27,8 @@ namespace Services.Implementations
         {
             public bool success;
             public string message;
+            public string name;
+
         }
 
         public async Task<responsing> SavingImage(IFormFile imageFile, string requestSchema, HostString hostString, string folderName)
@@ -62,7 +64,7 @@ namespace Services.Implementations
 
 
                 // Return the URL of the uploaded image
-                return new responsing() { success = true, message = imageUrl };
+                return new responsing() { success = true, message = imageUrl, name = uniqueFileName };
 
             }
             catch (Exception ex)

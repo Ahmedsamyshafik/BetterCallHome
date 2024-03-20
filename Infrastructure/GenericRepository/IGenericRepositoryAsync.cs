@@ -1,9 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.GenericRepository
 {
@@ -22,5 +17,7 @@ namespace Infrastructure.GenericRepository
         Task UpdateAsync(T entity);
         Task UpdateRangeAsync(ICollection<T> entities);
         Task DeleteAsync(T entity);
+        IEnumerable<T> GetTableAsIEnumerable();
+        IList<T> GetTableAsList();
     }
 }

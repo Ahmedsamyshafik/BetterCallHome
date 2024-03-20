@@ -6,7 +6,7 @@ namespace Core.Features.Users.Queries.Models
 {
     public class GetProfileDataQuery : IRequest<Response<UserDataResponse>>
     {
-        public string UserId { get; set; }
+        public string RequestedId { get; set; }
         public string? RequesterUserID { get; set; }
 
     }
