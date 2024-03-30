@@ -12,11 +12,11 @@ namespace BetterCallHomeWeb.Areas
     [Route("api/[controller]")]
     [ApiController]
     [Area("Admin")]
-    [Authorize(Constants.AdminRole)]
     public class AdminController : AppControllerBase
     {
         //Reviews-Panding
         [HttpGet("[action]")]
+    [Authorize(Roles = Constants.AdminRole)]
 
         public async Task<IActionResult> GetPendingApartments([FromQuery] GetPendingApartmentsQuery query)
         {
@@ -26,6 +26,8 @@ namespace BetterCallHomeWeb.Areas
         }
 
         [HttpPost("[action]")]
+        [Authorize(Roles = Constants.AdminRole)]
+
         public async Task<IActionResult> PendingResponse([FromBody] PendingApartmentAction command)
         {
             var response = await Mediator.Send(command);
@@ -33,6 +35,8 @@ namespace BetterCallHomeWeb.Areas
         }
 
         [HttpGet("[action]")]
+        [Authorize(Roles = Constants.AdminRole)]
+
         public async Task<IActionResult> GetAllUsers([FromQuery] GetAllUserQuery query)
         {
             var response = await Mediator.Send(query);
@@ -40,6 +44,8 @@ namespace BetterCallHomeWeb.Areas
         }
 
         [HttpDelete("[action]")]
+        [Authorize(Roles = Constants.AdminRole)]
+
         public async Task<IActionResult> DeleteUser([FromQuery] DeleteUserCommand command)
         {
             var response = await Mediator.Send(command);

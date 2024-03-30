@@ -14,7 +14,8 @@ namespace Core.Features.Apartments.Commands.Handlers
                     IRequestHandler<AddApartmentCommand, Response<AddApartmentResponse>>,
                     IRequestHandler<AddCommentApartmentCommand, Response<string>>,
                     IRequestHandler<AddReactApartmentCommand, Response<string>>,
-                    IRequestHandler<PendingApartmentAction, Response<string>>
+                    IRequestHandler<PendingApartmentAction, Response<string>>,
+                    IRequestHandler<DeleteApartmentCommand, Response<string>>
     {
         #region Fields
         private readonly IApartmentServices _apartmentServices;
@@ -171,6 +172,22 @@ namespace Core.Features.Apartments.Commands.Handlers
             //do operation in service + Delete images if deleted!
             await _apartmentServices.HandlePendingApartments(request.Accept, apartment);
             return Success("");
+        }
+
+        public async Task<Response<string>> Handle(DeleteApartmentCommand request, CancellationToken cancellationToken)
+        {
+            //valid id?
+            var apartment = await _apartmentServices.GetApartment(request.ApartmentId);
+            if (apartment == null) return NotFound<string>("No Apartmentd With This ID!");
+            if (apartment.OwnerId != request.userID) return BadRequest<string>("apartment not belong to this user!!");
+
+            //Delete Files
+            await _apartmentServices.DeleteApartmentFilesOnly(apartment);
+            //Delete Students?
+            //Delete From DB
+            await _apartmentServices.DeleteApartmentAsync(apartment);
+            //return Response
+            return Deleted<string>("");
         }
         #endregion
 

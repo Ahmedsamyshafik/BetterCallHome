@@ -33,6 +33,7 @@ namespace Domin.Models
         [ForeignKey(nameof(Owner))]// ownerrr
         public string OwnerId { get; set; }
         public virtual ApplicationUser Owner { get; set; }
+        //
 
 
         //[ForeignKey("UsersApartment")]// Students

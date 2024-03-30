@@ -11,5 +11,12 @@ namespace Core.Mapping.ApartmentMapping
 
             CreateMap<ApartmentPaginationPending, GetPendingApartmentsPaginationResponse>();
         }
+        public void GetApartmentsForOwnerQueryMapping()
+        
+        {
+
+            CreateMap<GetPendingApartmentsForOwnerPaginationDTO, GetPendingApartmentsForOwnerPaginationResponse>()
+                .ForMember(d=>d.Description,opt=>opt.MapFrom(s=>s.Description));
+        }
     }
 }

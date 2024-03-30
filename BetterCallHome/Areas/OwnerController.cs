@@ -4,6 +4,7 @@ using Core.Features.Apartments.Queries.Models;
 using Domin.Constant;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 namespace BetterCallHomeWeb.Areas
 {
     [Route("api/[controller]")]
@@ -44,6 +45,28 @@ namespace BetterCallHomeWeb.Areas
         {
             var response = await Mediator.Send(Query);
             return NewResult(response);
+        }
+
+
+        [HttpGet("[action]")]
+        [Authorize(Roles = Constants.OwnerRole)]
+        public async Task<IActionResult> GetOwnerApartments([FromQuery] GetApartmentsForOwnerQuery query)
+        {
+            var response = await Mediator.Send(query);
+            return Ok(response);
+        }
+
+        [HttpDelete("[action]")] // Here ! 
+        [Authorize(Roles = Constants.OwnerRole)]
+        public async Task<IActionResult> DeleteApartment([FromQuery] DeleteApartmentDTO command)
+        {
+            var send = new DeleteApartmentCommand()
+            {
+                ApartmentId = command.ApartmentId,
+                userID = User.Claims.FirstOrDefault(c => c.Type == "uid")?.Value
+        };
+            var response = await Mediator.Send(send);
+            return Ok(response);
         }
     }
 }

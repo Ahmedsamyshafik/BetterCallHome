@@ -13,7 +13,8 @@ namespace Core.Features.Apartments.Queries.Handlers
 {
     public class ApartmentQueriesHandlers : ResponseHandler,
         IRequestHandler<GetNotificationApartmentQuery, Response<NotificationApartmentResponse>>,
-        IRequestHandler<GetPendingApartmentsQuery, PaginatedResult<GetPendingApartmentsPaginationResponse>>
+        IRequestHandler<GetPendingApartmentsQuery, PaginatedResult<GetPendingApartmentsPaginationResponse>>,
+        IRequestHandler<GetApartmentsForOwnerQuery, PaginatedResult<GetPendingApartmentsForOwnerPaginationResponse>>
     {
         #region Fields
         private readonly UserManager<ApplicationUser> _userManager;
@@ -73,15 +74,28 @@ namespace Core.Features.Apartments.Queries.Handlers
         public async Task<PaginatedResult<GetPendingApartmentsPaginationResponse>> Handle(GetPendingApartmentsQuery request, CancellationToken cancellationToken)
         {
             var test = _apartmentServices.getpaginate(request.Search);
-            //List<GetPendingApartmentsPaginationResponse> l = new();
-            //PaginatedResult<GetPendingApartmentsPaginationResponse> x = new(data: l);
-            //return x;
+           
             var paginationList = await _mapper.ProjectTo<GetPendingApartmentsPaginationResponse>(test)
                 .ToPaginatedListAsync(request.PageNumber, request.PageSize);
 
             return paginationList;
         }
 
+        public async Task<PaginatedResult<GetPendingApartmentsForOwnerPaginationResponse>> Handle(GetApartmentsForOwnerQuery request, CancellationToken cancellationToken)
+        {
+            var test = _apartmentServices.getpaginateForOwner(request.OwnerId,request.Search);
+            test.OrderBy(x => x.PublishedAt);
+            
+            var paginationList = await _mapper.ProjectTo<GetPendingApartmentsForOwnerPaginationResponse>(test)
+                .ToPaginatedListAsync(request.PageNumber, request.PageSize);
+
+            return paginationList;
+        }
+
+
+        #endregion
+
+        #region Private Fucntions
         private async Task<List<ReturnedNotify>> HandleMapping(List<UserApartmentsComment> comments, List<UserApartmentsReact> reacts, List<View> views)
         {
             var result = new List<ReturnedNotify>();

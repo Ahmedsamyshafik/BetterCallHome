@@ -2,6 +2,7 @@
 {
     public class ApartmentPaginationPending
     {
+        public int ApartmentID { get; set; }
         public string OwnerName { get; set; }
         public string? OwnerImage { get; set; }
         public DateTime? PublishedAt { get; set; }

@@ -108,11 +108,10 @@ namespace Services.Implementations
                 //  temp.ApartmentCoverImage = apart.CoverImageName;
                 temp.PublishedAt = apart.CreatedAt;
                 temp.Salary = apart.Price;
+                temp.ApartmentID = apart.Id;
 
                 temp.OwnerName = apart.Owner.UserName;
                 temp.OwnerImage = apart.Owner.imageUrl;
-
-
 
                 var images = imgs.Where(x => x.ApartmentID == apart.Id).ToList();//list of apartments
                 List<string> urls = new List<string>();
@@ -134,15 +133,32 @@ namespace Services.Implementations
                     string url = royal.ImageUrl;
                     if (url != null) urls.Add(url);
                 }
-
                 temp.ApartmentsPics = urls;
-
-                // temp.ApartmentsPics.AddRange(videos); // imgs 
-
-
-
                 result.Add(temp);
+            }
+            return result.AsQueryable();
+        }
 
+        public IQueryable<GetPendingApartmentsForOwnerPaginationDTO> getpaginateForOwner(string ownerID, string? search)
+        {
+            var lst = _apartmentRepository.GetTableNoTracking()
+                .Where(x => x.OwnerId == ownerID && x.Publish == true);
+            if (search != null)
+            {
+                lst = lst.Where(x => x.Name.Contains(search));
+            }
+            List<GetPendingApartmentsForOwnerPaginationDTO> result = new List<GetPendingApartmentsForOwnerPaginationDTO>();
+            foreach (var apart in lst)
+            {
+                var temp = new GetPendingApartmentsForOwnerPaginationDTO();
+                temp.Address = apart.Address;
+                temp.ApartmentTitle = apart.Name;
+                temp.NumberOfUsers = apart.NumberOfUsers;
+                temp.ApartmentCoverImage = apart.CoverImageName;
+                temp.PublishedAt = apart.CreatedAt;
+                temp.Salary = apart.Price;
+                temp.ApartmentID = apart.Id;
+                result.Add(temp);
             }
             return result.AsQueryable();
         }

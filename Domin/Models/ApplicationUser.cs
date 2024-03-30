@@ -16,17 +16,14 @@ namespace Domin.Models
         public int Counter { get; set; }
         public string CodeConfirm { get; set; }
 
-        //  [InverseProperty(nameof(Apartment.Owner))]
-
         [ForeignKey("Apartments")]//Owner
-        // public int UserApartmentId { get; set; }//
         public virtual ICollection<Apartment>? OwnedApartment { get; set; }//Owner
 
 
-        // [InverseProperty(nameof(Models.Apartment.StudentsApartment))]
         [ForeignKey("Apartment")]// Student
-        public int? CurrentLivingInId { get; set; }
+        public int? CurrentLivingInId { get; set; } // Apartment ID
         public virtual Apartment? CurrentLivingIn { get; set; }
+
 
         public virtual ICollection<View>? Viewers { get; set; }
         public virtual ICollection<UserApartmentsComment>? Comments { get; set; }

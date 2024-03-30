@@ -17,5 +17,7 @@ namespace Services.Abstracts
         IQueryable<ApartmentPaginationPending> getpaginate(string? search);
         Task<string> HandlePendingApartments(bool Accept, Apartment apartment);
 
+        IQueryable<GetPendingApartmentsForOwnerPaginationDTO> getpaginateForOwner(string ownerID, string? search);
+
     }
 }

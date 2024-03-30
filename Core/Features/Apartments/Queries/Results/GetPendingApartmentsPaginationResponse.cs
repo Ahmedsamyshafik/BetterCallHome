@@ -4,9 +4,12 @@ namespace Core.Features.Apartments.Queries.Results
 {
     public class GetPendingApartmentsPaginationResponse
     {
+
         public string OwnerName { get; set; }
         public string? OwnerImage { get; set; }
         public DateTime PublishedAt { get; set; }
+
+        public int ApartmentID { get; set; }
         public string ApartmentTitle { get; set; }
         public string ApartmentCoverImage { get; set; }
         public string? Address { get; set; }
