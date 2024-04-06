@@ -11,6 +11,7 @@ namespace Core.Mapping.ApartmentMapping
             GetPendingApartmentQueryMapping();
 
             GetApartmentsForOwnerQueryMapping();
+            PaginationApartmentMain();
 
         }
     }

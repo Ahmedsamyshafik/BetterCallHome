@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Core.Bases;
 using Core.Features.Users.Commands.Models;
+using Core.Features.Users.Commands.Models.ApartmentsRquests;
 using Core.Features.Users.Commands.Results;
 using Domin.Models;
 using Infrastructure.DTO;
@@ -18,20 +19,28 @@ namespace Core.Features.Users.Commands.Handlers
                     IRequestHandler<EditProfileUserCommand, Response<string>>,
                     IRequestHandler<ResetPasswordUserCommand, Response<string>>,
                     IRequestHandler<ChangePasswordUserCommand, Response<string>>,
-                    IRequestHandler<DeleteUserCommand, Response<string>>
+                    IRequestHandler<DeleteUserCommand, Response<string>>,
+                    IRequestHandler<RequestApartmentStudentCommand, Response<string>>,
+                    IRequestHandler<ActionsRequestedApartmentStudentCommand, Response<string>>
     {
 
         #region Inject
 
         private readonly IAuthService _auth;
         private readonly IMapper _mapper;
+        private readonly IUserApartmentsRequestsService _requestsService;
+        private readonly IApartmentServices _apartmentServices;
+        private readonly IUsersApartmentsServices _usersApartmentsServices;
 
 
-        public UserCommandHandler(IAuthService auth, IMapper mapper)
+        public UserCommandHandler(IAuthService auth, IMapper mapper, IUserApartmentsRequestsService requestsService,
+            IApartmentServices apartmentServices, IUsersApartmentsServices usersApartmentsServices)
         {
             _auth = auth;
             _mapper = mapper;
-
+            _requestsService = requestsService;
+            _apartmentServices = apartmentServices;
+            _usersApartmentsServices = usersApartmentsServices;
         }
         #endregion
 
@@ -140,7 +149,44 @@ namespace Core.Features.Users.Commands.Handlers
             //check id? not found
             if (result == "not found") return NotFound<string>("No User with this Id");
             if (result == "Not Confirmed!") return NotFound<string>("Not Confirmed!");
+            // Owner With Students in apartment?
+            if (result == "Stduent") return NotFound<string>("Thier Are Students with This owner!");
             return Success(result);
+        }
+
+        public async Task<Response<string>> Handle(RequestApartmentStudentCommand request, CancellationToken cancellationToken)
+        {
+            //check user , apartment
+            var Existe = await _auth.UserAndApartmentISExist(request.UserID, request.ApartmentID);
+            if (Existe == null) return NotFound<string>("No user Or Apartment with this id!");
+            //add to table for waiting requests
+            var paramter = _mapper.Map<UserApartmentsRequests>(request);
+            var apartment = await _apartmentServices.GetApartment(request.ApartmentID);
+            paramter.OwnerID = apartment.OwnerId;
+            //Send To Table?
+            await _requestsService.Add(paramter);
+            //return response
+            return Success("");
+
+        }
+
+        public async Task<Response<string>> Handle(ActionsRequestedApartmentStudentCommand request, CancellationToken cancellationToken)
+        {
+
+            // Service to add studnet to apartment or delete this record (requestService) //steps!
+            var rec = _requestsService.GetRecord(request.id); //GET Record in (StudentRequest)
+            //Add To Apartment if request= true?
+            if (request.Accept)
+            {
+                //auth  
+                await _usersApartmentsServices.AddAsync(rec.UserID, rec.ApartmentID);
+                //apartment
+                await _apartmentServices.AssingStudnetsToApartment(rec.ApartmentID); // As Count
+            }
+
+            await _requestsService.DeleteRecord(request.id); //counter of assiging and do it forloop
+            //return response
+            return Success("");
         }
 
 

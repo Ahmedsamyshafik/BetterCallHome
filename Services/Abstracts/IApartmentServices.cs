@@ -1,5 +1,7 @@
 ﻿using Domin.Models;
 using Infrastructure.DTO;
+using infrustructure.DTO.Apartments.Pagination;
+using Microsoft.AspNetCore.Http;
 
 namespace Services.Abstracts
 {
@@ -14,10 +16,16 @@ namespace Services.Abstracts
         IQueryable<Apartment> GetOwnerApartments(string userID);
         IQueryable<Apartment> GetPendingApartmentd(string? search);
         //Task<List<ApartmentPaginationPending>> getpaginate(string? search);
-        IQueryable<ApartmentPaginationPending> getpaginate(string? search);
+        IQueryable<ApartmentPaginationPending> getPendingpaginate(string? search);
         Task<string> HandlePendingApartments(bool Accept, Apartment apartment);
 
         IQueryable<GetPendingApartmentsForOwnerPaginationDTO> getpaginateForOwner(string ownerID, string? search);
+        Task<string> AssingStudnetsToApartment(int apartmentId);
+        Task<string> EditApartment(Apartment apartment, IFormFile? CoverImage, IFormFile? Video, List<IFormFile>? Pics,
+            string requestSchema, HostString host);
+
+        IQueryable<GetApartmentPagintationResponse> getApartmentspaginate(string? search, string? city, string? gender,
+         int countIn, decimal? min, decimal? max);
 
     }
 }

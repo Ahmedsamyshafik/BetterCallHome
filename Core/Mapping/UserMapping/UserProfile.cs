@@ -16,6 +16,9 @@ namespace Core.Mapping.UserMapping
             EditProfileCommandToApplicationUser_CommaneMapping();
 
             ApplicationUserToUserResponse();
+            RequestApartmentStudentCommandToUserApartment();
+
+            UserRequestsToApartmentRequestsResponse();
 
         }
     }

@@ -4,6 +4,7 @@ using Core.Features.Apartments.Queries.Models;
 using Core.Features.Apartments.Queries.Results;
 using Core.Wrappers;
 using Domin.Models;
+using infrustructure.DTO.Apartments.Pagination;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Services.Abstracts;
@@ -14,7 +15,8 @@ namespace Core.Features.Apartments.Queries.Handlers
     public class ApartmentQueriesHandlers : ResponseHandler,
         IRequestHandler<GetNotificationApartmentQuery, Response<NotificationApartmentResponse>>,
         IRequestHandler<GetPendingApartmentsQuery, PaginatedResult<GetPendingApartmentsPaginationResponse>>,
-        IRequestHandler<GetApartmentsForOwnerQuery, PaginatedResult<GetPendingApartmentsForOwnerPaginationResponse>>
+        IRequestHandler<GetApartmentsForOwnerQuery, PaginatedResult<GetPendingApartmentsForOwnerPaginationResponse>>,
+        IRequestHandler<GetApartmentPagintation, PaginatedResult<GetApartmentPagintationResponse>>
     {
         #region Fields
         private readonly UserManager<ApplicationUser> _userManager;
@@ -73,8 +75,8 @@ namespace Core.Features.Apartments.Queries.Handlers
 
         public async Task<PaginatedResult<GetPendingApartmentsPaginationResponse>> Handle(GetPendingApartmentsQuery request, CancellationToken cancellationToken)
         {
-            var test = _apartmentServices.getpaginate(request.Search);
-           
+            var test = _apartmentServices.getPendingpaginate(request.Search);
+
             var paginationList = await _mapper.ProjectTo<GetPendingApartmentsPaginationResponse>(test)
                 .ToPaginatedListAsync(request.PageNumber, request.PageSize);
 
@@ -83,11 +85,24 @@ namespace Core.Features.Apartments.Queries.Handlers
 
         public async Task<PaginatedResult<GetPendingApartmentsForOwnerPaginationResponse>> Handle(GetApartmentsForOwnerQuery request, CancellationToken cancellationToken)
         {
-            var test = _apartmentServices.getpaginateForOwner(request.OwnerId,request.Search);
+            var test = _apartmentServices.getpaginateForOwner(request.OwnerId, request.Search);
             test.OrderBy(x => x.PublishedAt);
-            
+
             var paginationList = await _mapper.ProjectTo<GetPendingApartmentsForOwnerPaginationResponse>(test)
                 .ToPaginatedListAsync(request.PageNumber, request.PageSize);
+
+            return paginationList;
+        }
+
+        public async Task<PaginatedResult<GetApartmentPagintationResponse>> Handle(GetApartmentPagintation request, CancellationToken cancellationToken)
+        {
+            //Get All Apartments in Pagination
+            var test = _apartmentServices.getApartmentspaginate(request.Search, request.City, request.Gender, request.CountInApartment, request.minPrice, request.maxPrice);
+           test.OrderByDescending(x=>x.PublishedAt);
+            //from  x=>x!!
+            var paginationList = await _mapper.ProjectTo<GetApartmentPagintationResponse>(test)
+              .ToPaginatedListAsync(request.PageNumber, request.PageSize);
+
 
             return paginationList;
         }

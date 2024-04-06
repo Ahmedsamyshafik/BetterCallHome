@@ -45,7 +45,7 @@ namespace Domin.Seeding
                     Gender = "male",
                     EmailConfirmed = true,
                     Address = "Domiat",
-                    CodeConfirm = "1"
+                    CodeConfirm = "1",
                 };
 
                 var result = userManager.CreateAsync(adminUser, "Alahly1907#").Result;

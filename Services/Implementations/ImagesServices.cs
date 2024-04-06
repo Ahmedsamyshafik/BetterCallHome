@@ -49,6 +49,38 @@ namespace Services.Implementations
             }
             return "";
         }
+        public async Task<string> DeleteApartmentCoverImage(int apartmentId )
+        {
+            var images = _iimages.GetTableNoTracking().Where(x => x.ApartmentID == apartmentId)
+               .Include(x => x.Apartment);
+            
+
+            if (images.Count() > 0)
+            {
+                foreach (var image in images)
+                { 
+                    var r = Path.Combine("wwwroot", Constants.ApartmentPics, image.Apartment.CoverImageName); //Cover Image
+                    if (File.Exists(r)) File.Delete(r);
+                }
+            }
+            return "";
+        }
+        public async Task<string> DeleteApartmentPics(int apartmentId)
+        {
+            var images = _iimages.GetTableNoTracking().Where(x => x.ApartmentID == apartmentId)
+               .Include(x => x.Apartment);
+
+
+            if (images.Count() > 0)
+            {
+                foreach (var image in images)
+                {
+                    var r = Path.Combine("wwwroot", Constants.ApartmentPics, image.Name); //pics
+                    if (File.Exists(r)) File.Delete(r);
+                }
+            }
+            return "";
+        }
 
         public List<ApartmentImages> GetAlll()
         {

@@ -1,7 +1,10 @@
 ﻿using BetterCallHomeWeb.Base;
 using Core.Features.Apartments.Commands.Models;
 using Core.Features.Apartments.Queries.Models;
+using Core.Features.Users.Commands.Models.ApartmentsRquests;
+using Core.Features.Users.Queries.Models;
 using Domin.Constant;
+using Infrastructure.DTO.Owner;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
@@ -64,9 +67,53 @@ namespace BetterCallHomeWeb.Areas
             {
                 ApartmentId = command.ApartmentId,
                 userID = User.Claims.FirstOrDefault(c => c.Type == "uid")?.Value
-        };
+            };
             var response = await Mediator.Send(send);
             return Ok(response);
         }
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetApartmentsRequests([FromQuery] GetApartmentsRequestsQuery query)
+        {
+            var response = await Mediator.Send(query);
+            return Ok(response);
+        }
+
+        [HttpPost("[action]")]
+        public async Task<IActionResult> ApartmentsRequestsHandle(ActionsRequestedApartmentStudentCommand command)
+        {
+            var response = await Mediator.Send(command);
+            return NewResult(response);
+        }
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetOwnerStudents([FromQuery] GetOwnerStudents query)
+        {
+            var response = await Mediator.Send(query);
+            return Ok(response);
+        }
+
+        [HttpPut("[action]")]
+        public async Task<IActionResult> EditApartment([FromForm] EditApartmentDTO DTO)
+        {
+            //User Token !! id !
+            var command = new EditApartmentCommand()
+            {
+                price = DTO.price,
+                Address = DTO.Address,
+                ApartmentId = DTO.ApartmentId,
+                CoverImage = DTO.CoverImage,
+                Description = DTO.Description,
+                numberOfUsers = DTO.numberOfUsers,
+                Pics = DTO.Pics,
+                Video = DTO.Video,
+                Title = DTO.Title,
+                Requesthost = Request.Host,
+                RequestScheme = Request.Scheme
+            };
+            var response = await Mediator.Send(command);
+            return NewResult(response);
+        }
+
     }
 }

@@ -1,8 +1,12 @@
-﻿using Domin.Models;
+﻿using Domin.Constant;
+using Domin.Models;
 using Infrastructure.DTO;
 using Infrastructure.Repository.IRepository;
+using infrustructure.DTO.Apartments.Pagination;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Services.Abstracts;
+using System.Reflection.Metadata;
 
 namespace Services.Implementations
 {
@@ -13,16 +17,20 @@ namespace Services.Implementations
         private readonly IImagesServices _imagesService;
         private readonly IRoyalServices _royalServices;
         private readonly IVideosServices _videosService;
+        private readonly IUploadingMedia _media;
+        private readonly IUsersApartmentsServices _usersApartmentsServices;
         #endregion
 
         #region Ctor
         public ApartmentServices(IApartmentRepository apartmentRepository, IImagesServices imagesService,
-            IRoyalServices royalServices, IVideosServices videosService)
+            IRoyalServices royalServices, IVideosServices videosService, IUploadingMedia media, IUsersApartmentsServices usersApartmentsServices)
         {
             _apartmentRepository = apartmentRepository;
             _imagesService = imagesService;
             _royalServices = royalServices;
             _videosService = videosService;
+            _media = media;
+            _usersApartmentsServices = usersApartmentsServices;
         }
         #endregion
 
@@ -73,6 +81,7 @@ namespace Services.Implementations
             return apartments;
         }
 
+
         public IQueryable<Apartment> GetPendingApartmentd(string? search)
         {
             var x = _apartmentRepository.GetTableNoTracking().Where(x => x.Publish == false);
@@ -83,7 +92,8 @@ namespace Services.Implementations
             return x;
         }
 
-        public IQueryable<ApartmentPaginationPending> getpaginate(string? search)
+     
+        public IQueryable<ApartmentPaginationPending> getPendingpaginate(string? search)
         {
             var lst = _apartmentRepository.GetTableNoTracking().
                 Include(x => x.Owner)
@@ -113,7 +123,9 @@ namespace Services.Implementations
                 temp.OwnerName = apart.Owner.UserName;
                 temp.OwnerImage = apart.Owner.imageUrl;
 
-                var images = imgs.Where(x => x.ApartmentID == apart.Id).ToList();//list of apartments
+                var images = imgs.Where(x => x.ApartmentID == apart.Id).ToList();
+                var Vids = videos.Where(x => x.ApartmentID == apart.Id).ToList();
+                var Rols = royals.Where(x => x.ApartmentID == apart.Id).ToList();
                 List<string> urls = new List<string>();
                 urls.Add(apart.CoverImageUrl);
 
@@ -123,12 +135,12 @@ namespace Services.Implementations
                     if (url != null) urls.Add(url);
 
                 }
-                foreach (var video in videos)
+                foreach (var video in Vids)
                 {
                     string url = video.VideoUrl;
                     if (url != null) urls.Add(url);
                 }
-                foreach (var royal in royals)
+                foreach (var royal in Rols)
                 {
                     string url = royal.ImageUrl;
                     if (url != null) urls.Add(url);
@@ -187,6 +199,120 @@ namespace Services.Implementations
             }
             return "";
         }
+
+        public async Task<string> EditApartment(Apartment apartment, IFormFile? CoverImage, IFormFile? Video, List<IFormFile>? Pics,
+            string requestSchema, HostString host)
+        {
+            var DBApartment = await _apartmentRepository.GetByIdAsync(apartment.Id);
+            DBApartment.Address = apartment.Address;
+            DBApartment.Description = apartment.Description;
+            DBApartment.Price = apartment.Price;
+            DBApartment.Name = apartment.Name;
+            DBApartment.NumberOfUsers = apartment.NumberOfUsers;
+            //images-videos
+            //CoverImage
+            if (CoverImage != null)
+            {
+                //Delete Old
+                await _imagesService.DeleteApartmentCoverImage(apartment.Id);
+                //Save New
+                var x = await _media.SavingImage(CoverImage, requestSchema, host, Constants.ApartmentPics);
+                //messeag=>url & name=>name
+                if (x.success)
+                {
+                    DBApartment.CoverImageUrl = x.message;
+                    DBApartment.CoverImageName = x.name;
+                }
+                else
+                {
+                    return "Faild in cove image";
+                }
+
+            }
+            if (Pics != null)
+            {
+                //Delete Old
+                await _imagesService.DeleteApartmentPics(apartment.Id);
+                //Saving New 
+                foreach (var p in Pics)
+                {
+                    //Save New
+                    var x = await _media.SavingImage(p, requestSchema, host, Constants.ApartmentPics);
+                    if (x.success) await _imagesService.AddImage(x.message, apartment.Id, x.name);
+                    else
+                    {
+                        return "Faild in  images";
+                    }
+                }
+
+            }
+            if (Video != null)
+            {   //Delete old (File)
+                await _videosService.DeleteApartmentVideoFile(apartment.Id);
+                //Delete Old (DB)
+                await _videosService.DeleteVideo(apartment.Id);
+                //Save new
+                var videoPath = await _media.SavingImage(Video, requestSchema, host, Constants.ApartmentVids);
+                if (videoPath.success)
+                {
+                    var x = await _videosService.AddVideo(videoPath.message, apartment.Id, videoPath.name);
+
+                    DBApartment.ApartmentVideoID = x.Id;
+                }
+                else
+                {
+                    return "Faild in  Video";
+                }
+
+            }
+            return "Success";
+        }
+
+        #region Housing
+        public async Task<string> AssingStudnetsToApartment(int apartmentId)
+        {
+            var apartment = await _apartmentRepository.GetByIdAsync(apartmentId);
+            apartment.NumberOfUsersExisting++;
+            await _apartmentRepository.UpdateAsync(apartment);
+            return "Success";
+        }
+
+        public IQueryable<GetApartmentPagintationResponse> getApartmentspaginate(string? search, string? city, string? gender,
+         int countIn, decimal? min, decimal? max)
+        {
+            // Filteration!
+            var lst = _apartmentRepository.GetTableNoTracking().Where(x => x.Publish == true).ToList();
+            if (search != null) lst = lst.Where(x => x.Name.Contains(search)).ToList();
+            if (city != null) lst = lst.Where(x => x.City.Equals(city)).ToList();
+            if (gender != null) lst = lst.Where(x => x.gender.Equals(gender)).ToList();
+            if (countIn > 0) lst = lst.Where(x => x.NumberOfUsers >= countIn).ToList();
+            if (min > 0) lst = lst.Where(x => x.Price >= min).ToList();
+            if (max > 0) lst = lst.Where(x => x.Price <= min).ToList();
+
+            List<GetApartmentPagintationResponse> result = new();
+            foreach (var apart in lst)
+            {
+                var temp = new GetApartmentPagintationResponse();
+
+                temp.Address = apart.Address;
+                temp.Name = apart.Name;
+                temp.TotalCount = apart.NumberOfUsers; // Apartment Total Count
+                //Student Already in ! => UserApartments
+                temp.ApartmentExistCount = _usersApartmentsServices.GetCountStudentsInApartment(apart.Id);
+                temp.PublishedAt = (DateTime)apart.CreatedAt;
+                temp.Salary = apart.Price;
+                temp.ApartmentID = apart.Id;
+                temp.ImageURL = apart.CoverImageUrl;
+                temp.City = apart.City;
+                result.Add(temp);
+            }
+            return result.AsQueryable();
+        }
+
+
+
+        #endregion
+
         #endregion
 
 

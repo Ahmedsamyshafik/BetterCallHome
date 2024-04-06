@@ -28,6 +28,12 @@ namespace Services.Implementations
             ApartmentVideo video = new ApartmentVideo() { ApartmentID = apartmentID, VideoUrl = url, Name = name };
             return await _video.AddAsync(video);
         }
+        public async Task<string> DeleteVideo(int aprtmentId)
+        {
+            var video = _video.GetTableNoTracking().Where(x => x.ApartmentID == aprtmentId).FirstOrDefault();
+            await _video.DeleteAsync(video);
+            return "";
+        }
 
         public async Task<string> DeleteApartmentVideoFile(int apartmentId)
         {

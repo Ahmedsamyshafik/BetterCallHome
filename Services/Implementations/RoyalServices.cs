@@ -24,8 +24,12 @@ namespace Services.Implementations
         {
             var image = _royal.GetTableNoTracking().Where(x => x.ApartmentID == apartmentId)
                 .Include(x => x.Apartment).FirstOrDefault();
-            var r = Path.Combine("wwwroot", Constants.ApartmentRoyalDocPics, image.Name); //Dic
-            if (File.Exists(r)) File.Delete(r);
+            if (image != null)
+            {
+                var r = Path.Combine("wwwroot", Constants.ApartmentRoyalDocPics, image.Name); //Dic
+                if (File.Exists(r)) File.Delete(r);
+            }
+
             return "";
         }
 

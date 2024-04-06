@@ -12,6 +12,7 @@ namespace Infrastructure.Data
 
 
         public DbSet<Apartment> Apartment { get; set; }
+        public DbSet<UsersApartments> UsersApartments { get; set; }
         public DbSet<ApartmentImages> apartmentImages { get; set; }
         public DbSet<RoyalDocument> royalDocuments { get; set; }
         public DbSet<ApartmentVideo> apartmentVideos { get; set; }
@@ -20,6 +21,7 @@ namespace Infrastructure.Data
         public DbSet<UserApartmentsReact> userApartmentsReacts { get; set; }
         public DbSet<UserApartmentsComment> userapartmentsComments { get; set; }
         public DbSet<NotificationTransaction> notificationTransactions { get; set; }
+        public DbSet<UserApartmentsRequests> UserApartmentsRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,11 +31,11 @@ namespace Infrastructure.Data
             .HasForeignKey(a => a.OwnerId)
             .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<ApplicationUser>()
-                .HasOne(u => u.CurrentLivingIn)
-                .WithMany(a => a.StudentsApartment)
-                .HasForeignKey(u => u.CurrentLivingInId)
-                .OnDelete(DeleteBehavior.Restrict);
+            //modelBuilder.Entity<UsersApartments>()
+            //    .HasOne(u => u.CurrentLivingIn)
+            //    .WithMany(a => a.StudentsApartment)
+            //    .HasForeignKey(u => u.CurrentLivingInId)
+            //    .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Apartment>().
                 HasOne(o => o.Owner).
@@ -63,6 +65,20 @@ namespace Infrastructure.Data
                 .WithMany(a => a.Comments)
                 .HasForeignKey(c => c.ApartmentId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+
+
+            modelBuilder.Entity<UserApartmentsRequests>()
+       .HasOne(uar => uar.ApplicationUser)
+       .WithMany()
+       .HasForeignKey(uar => uar.UserID)
+       .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserApartmentsRequests>()
+                .HasOne(uar => uar.Apartment)
+                .WithMany()
+                .HasForeignKey(uar => uar.ApartmentID)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
             base.OnModelCreating(modelBuilder);

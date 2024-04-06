@@ -16,13 +16,15 @@ namespace Domin.Models
         public int Counter { get; set; }
         public string CodeConfirm { get; set; }
 
+
+
         [ForeignKey("Apartments")]//Owner
         public virtual ICollection<Apartment>? OwnedApartment { get; set; }//Owner
 
 
-        [ForeignKey("Apartment")]// Student
-        public int? CurrentLivingInId { get; set; } // Apartment ID
-        public virtual Apartment? CurrentLivingIn { get; set; }
+        //public int? CurrentLivingInId { get; set; } // Apartment ID for Student
+        [ForeignKey("CurrentLivingInId")]
+        public virtual UsersApartments? CurrentLivingIn { get; set; }
 
 
         public virtual ICollection<View>? Viewers { get; set; }

@@ -6,6 +6,8 @@ using Core.Wrappers;
 using Domin.Constant;
 using Domin.Models;
 using Infrastructure.DTO;
+using Infrastructure.DTO.Owner;
+using Infrastructure.DTO.Student;
 using MediatR;
 using Services.Abstracts;
 
@@ -13,19 +15,28 @@ namespace Core.Features.Users.Queries.Handlers
 {
     public class UserCommandHandler : ResponseHandler,
         IRequestHandler<GetProfileDataQuery, Response<UserDataResponse>>,
-        IRequestHandler<GetAllUserQuery, PaginatedResult<GetAllUsersResponse>>
+        IRequestHandler<GetAllUserQuery, PaginatedResult<GetAllUsersResponse>>,
+        IRequestHandler<GetApartmentsRequestsQuery, PaginatedResult<ApartmentRequestsResponse>>,
+        IRequestHandler<GetOwnerStudents, PaginatedResult<GetOwnerStudentsResponse>>
+
     {
         #region Inject
         private readonly IAuthService _authService;
         private readonly IViewServices _view;
         private readonly IMapper _mapper;
         private readonly IApartmentServices _apartmentServices;
-        public UserCommandHandler(IAuthService authService, IViewServices view, IMapper mapper, IApartmentServices apartmentServices)
+        private readonly IUserApartmentsRequestsService _requestsService;
+        private readonly IUsersApartmentsServices _usersApartmentsServices;
+
+        public UserCommandHandler(IAuthService authService, IViewServices view, IMapper mapper, IApartmentServices apartmentServices,
+            IUserApartmentsRequestsService requestsService, IUsersApartmentsServices usersApartmentsServices)
         {
             _authService = authService;
             _view = view;
             _mapper = mapper;
             _apartmentServices = apartmentServices;
+            _requestsService = requestsService;
+            _usersApartmentsServices = usersApartmentsServices;
         }
         #endregion
 
@@ -63,6 +74,34 @@ namespace Core.Features.Users.Queries.Handlers
             var paginatin = await x.ToPaginatedListAsync(request.PageNumber, request.PageSize);
             return paginatin;
         }
+
+        public async Task<PaginatedResult<ApartmentRequestsResponse>> Handle(GetApartmentsRequestsQuery request, CancellationToken cancellationToken)
+        {
+
+            var lst = await _authService.GetStudentRequestApartments(request.OwnerId);
+            var x = lst.AsQueryable();
+            var paginatin = await x.ToPaginatedListAsync(request.PageNumber, request.PageSize);
+            return paginatin;
+
+        }
+
+        public async Task<PaginatedResult<GetOwnerStudentsResponse>> Handle(GetOwnerStudents request, CancellationToken cancellationToken)
+        {
+
+            //Get Owner's Apartments
+            var apartments = await _apartmentServices.GetOwnerApartmentsAsList(request.OwnerID);
+            var apartmentsids = new List<int>();
+            foreach (var apartment in apartments) { apartmentsids.Add(apartment.Id); }
+            //Get Whole Record from userApartmnet Table
+            var usersApartmentsRecords = await _usersApartmentsServices.GetRecordsByApartmentdIds(apartmentsids);
+            //Get Needed Data from userid,apartmentid
+            var Students=await _authService.GetOwnerStudentsResponses(usersApartmentsRecords);
+            //Pagination
+            var x = Students.AsQueryable();
+            var paginatin = await x.ToPaginatedListAsync(request.PageNumber, request.PageSize);
+            return paginatin;
+        }
+
         #endregion
 
     }

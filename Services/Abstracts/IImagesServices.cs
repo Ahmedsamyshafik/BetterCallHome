@@ -9,5 +9,7 @@ namespace Services.Abstracts
         string DeleteAccountPic(string imageName);
         List<ApartmentImages> GetApartmentImgs(int apartmentId);
         List<ApartmentImages> GetAlll();
+        Task<string> DeleteApartmentCoverImage(int apartmentId);
+        Task<string> DeleteApartmentPics(int apartmentId);
     }
 }

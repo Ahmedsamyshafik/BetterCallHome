@@ -7,6 +7,7 @@ using Domin.Models;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Services.Abstracts;
+using Services.Implementations;
 
 namespace Core.Features.Apartments.Commands.Handlers
 {
@@ -15,7 +16,8 @@ namespace Core.Features.Apartments.Commands.Handlers
                     IRequestHandler<AddCommentApartmentCommand, Response<string>>,
                     IRequestHandler<AddReactApartmentCommand, Response<string>>,
                     IRequestHandler<PendingApartmentAction, Response<string>>,
-                    IRequestHandler<DeleteApartmentCommand, Response<string>>
+                    IRequestHandler<DeleteApartmentCommand, Response<string>>,
+                    IRequestHandler<EditApartmentCommand, Response<string>>
     {
         #region Fields
         private readonly IApartmentServices _apartmentServices;
@@ -26,12 +28,13 @@ namespace Core.Features.Apartments.Commands.Handlers
         private readonly IRoyalServices _royal;
         private readonly ICommentServices _comment;
         private readonly IReactServices _react;
+        private readonly IUsersApartmentsServices _usersApartments;
         private readonly UserManager<ApplicationUser> _userManager;
         #endregion
         #region Ctor
         public ApartmentCommandHandler(IApartmentServices apartmentServices, IMapper mapper, IUploadingMedia media
                     , IVideosServices videos, IImagesServices images, IRoyalServices royal, UserManager<ApplicationUser> userManager
-                   , ICommentServices comment, IReactServices react)
+                   , ICommentServices comment, IReactServices react, IUsersApartmentsServices usersApartments)
         {
             _apartmentServices = apartmentServices;
             _mapper = mapper;
@@ -42,6 +45,7 @@ namespace Core.Features.Apartments.Commands.Handlers
             _userManager = userManager;
             _comment = comment;
             _react = react;
+            _usersApartments = usersApartments;
         }
         #endregion
 
@@ -180,14 +184,33 @@ namespace Core.Features.Apartments.Commands.Handlers
             var apartment = await _apartmentServices.GetApartment(request.ApartmentId);
             if (apartment == null) return NotFound<string>("No Apartmentd With This ID!");
             if (apartment.OwnerId != request.userID) return BadRequest<string>("apartment not belong to this user!!");
-
+            //Any Studnets?
+            bool ExistStudent = _usersApartments.AnyStudnets(request.ApartmentId);
+            if (ExistStudent) return BadRequest<string>("Exist Students!!");
             //Delete Files
             await _apartmentServices.DeleteApartmentFilesOnly(apartment);
-            //Delete Students?
-            //Delete From DB
+
             await _apartmentServices.DeleteApartmentAsync(apartment);
             //return Response
             return Deleted<string>("");
+        }
+
+        public async Task<Response<string>> Handle(EditApartmentCommand request, CancellationToken cancellationToken)
+        {
+            //mapping => Auto mapper!
+            var apaa = new Apartment()
+            {
+                Address = request.Address,
+                Description = request.Description,
+                Name = request.Title,
+                NumberOfUsers = request.numberOfUsers,
+                Price = request.price,
+                Id = request.ApartmentId
+            };
+            //Service
+            var result = await _apartmentServices.EditApartment(apaa, request.CoverImage, request.Video, request.Pics, request.RequestScheme, request.Requesthost);
+            if (result == "Success") return Success("");
+            return BadRequest<string>(result);
         }
         #endregion
 

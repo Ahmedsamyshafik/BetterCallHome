@@ -1,4 +1,5 @@
-﻿using Infrastructure.GenericRepository;
+﻿using Domin.Models;
+using Infrastructure.GenericRepository;
 using Infrastructure.Repository.IRepository;
 using Infrastructure.Repository.Repository;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,8 @@ public static class ModuleInfrustructureDependencies
         services.AddTransient<ICommentRepository, CommentRepository>();
         services.AddTransient<IReactRepository, ReactRepository>();
         services.AddTransient<INotifyRepository, NotifyRepository>();
+        services.AddTransient<IUserApartmentsRequestsRepository, UserApartmentsRequestsRepository>();
+        services.AddTransient<IUsersApartmentsRepository, UsersApartmentsRepository>();
 
         services.AddTransient(typeof(IGenericRepositoryAsync<>), typeof(GenericRepositoryAsync<>));
         return services;

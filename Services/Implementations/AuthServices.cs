@@ -3,6 +3,8 @@ using Domin.Constant;
 using Domin.Models;
 
 using Infrastructure.DTO;
+using Infrastructure.DTO.Owner;
+using Infrastructure.DTO.Student;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -31,12 +33,14 @@ namespace Services.Implementations
         private readonly IUploadingMedia _media;
         private readonly IImagesServices _image;
         private readonly IApartmentServices _apartment;
-
+        private readonly IUserApartmentsRequestsService _requestsService;
+        private readonly IUsersApartmentsServices _usersApartments;
 
 
         public AuthService(UserManager<ApplicationUser> userManager, IConfiguration configuration, IMailService mailService,
             IMapper mapper, IGlobalErrorResponse globalError, IWebHostEnvironment hostingEnvironment, IUploadingMedia media
-            , RoleManager<IdentityRole> roleManager, IImagesServices image, IApartmentServices apartment)
+            , RoleManager<IdentityRole> roleManager, IImagesServices image, IApartmentServices apartment, IUserApartmentsRequestsService requestsService
+            , IUsersApartmentsServices usersApartments)
         {
             _userManager = userManager;
             _configuration = configuration;
@@ -48,6 +52,8 @@ namespace Services.Implementations
             _roleManager = roleManager;
             _image = image;
             _apartment = apartment;
+            _requestsService = requestsService;
+            _usersApartments = usersApartments;
         }
         #endregion
 
@@ -180,13 +186,28 @@ namespace Services.Implementations
 
         #endregion
 
-        #region Services(NameIsExist,Up,UpdateProfile,GetUserData,GetAllUsers)
+        #region Services(NameIsExist,UserIsExist,Up,UpdateProfile,GetUserData,GetAllUsers)
 
         public bool NameIsExist(string name, string email)
         {
             var listofUsers = _userManager.Users.AsQueryable().Where(x => x.UserName == name && x.Email != email);
             if (listofUsers.Any()) return true;
             return false;
+        }
+        public async Task<bool> UserISExist(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
+            return true;
+
+        }
+        public async Task<bool> UserAndApartmentISExist(string userId, int apartmentID)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            var apartment = await _apartment.GetApartment(apartmentID);
+            if (user == null || apartment == null) return false;
+            return true;
+
         }
 
         public async Task<string> UpdateProfile(ApplicationUser user, IFormFile? img, string requestSchema, HostString hostString)
@@ -287,7 +308,7 @@ namespace Services.Implementations
 
         #endregion
 
-        #region (DeleteUserFromAdmin)
+        #region (DeleteUserFromAdmin , GetStudnentsRequestsToApartment , GetOwner'sStudnets , GetUserByID)
 
         public async Task<string> DeleteUser(string userId)
         {
@@ -307,12 +328,22 @@ namespace Services.Implementations
             if (userRole.Contains(Constants.OwnerRole))
             { //if Owner?=> Delete img apartments + students from apartment
                 //Get owner apartments
+
+                
                 var apartments = await _apartment.GetOwnerApartmentsAsList(userId);
 
                 if (apartments.Count() > 0)
                 {
+                    foreach(var apSt in apartments)
+                    {
+                        //check Studnets?
+                        var Std = _usersApartments.AnyStudnets(apSt.Id);
+                        if (Std) return "Stduent";
+                    }
                     foreach (var apartment in apartments)
                     {
+                        //check Studnets?
+
                         var x = await _apartment.GetApartment(apartment.Id);
                         if (x != null)
                         {
@@ -330,6 +361,84 @@ namespace Services.Implementations
             await _userManager.DeleteAsync(user);
             return "";
         }
+
+        public async Task<List<ApartmentRequestsResponse>> GetStudentRequestApartments(string OwnerId)
+        {
+            //apartments to owner
+            var apartments = await _apartment.GetOwnerApartmentsAsList(OwnerId);
+            //get records from request table match owner ids//
+            var records = _requestsService.GetOwnerRequests(OwnerId);
+
+            //mapping (Get Student Data!) // check?
+            var ListOfRequests = _mapper.Map<List<ApartmentRequestsResponse>>(records);
+
+            return ListOfRequests;
+        }
+        #region MyRegion
+        //public async Task<List<GetOwnerStudentsResponse>> GetOwnerStudents(string ownerId)
+        //{
+        //    List<GetOwnerStudentsResponse> result = new();
+        //    //loop in apartments which have ownerid
+        //    var apartments = await _apartment.GetOwnerApartmentsAsList(ownerId);
+        //    //loop in students which have apartmentid
+        //    List<ApplicationUser> users = new();
+        //    foreach (var apartment in apartments)
+        //    { //null => New Table
+        // //       users.Add(_userManager.Users.Include(x => x.CurrentLivingIn).Where(x => x.CurrentLivingInId == apartment.Id).FirstOrDefault());
+        //    }
+        //    //mapping
+        //    foreach (var user in users)
+        //    {
+        //        var temp = new GetOwnerStudentsResponse();
+        //        temp.phone = user.PhoneNumber;
+        //        temp.email = user.Email;
+        //        temp.imageUrl = user.imageUrl;
+        //        temp.name = user.UserName;
+        //      //  temp.ApartmentID = (int)user.CurrentLivingInId;
+        //       // temp.ApartmentName = // New Table
+
+        //        result.Add(temp);
+        //    }
+        //    return result;
+        //}
+        #endregion
+
+
+
+        public async Task<ApplicationUser> GetUserById(string id)
+        {
+            return await _userManager.FindByIdAsync(id);
+        }
+
+        public IQueryable returnApartmentRequestsResponseAsQueryable(List<ApartmentRequestsResponse> list)
+        {
+            return list.AsQueryable();
+        }
+        #endregion
+
+        #region Housing
+
+        public async Task<string> AssignStudentToApartment(string UserId, int ApartmentId) //New Table And Saving
+        {
+            var user = await _userManager.FindByIdAsync(UserId); // USer Apartment
+            //   user.CurrentLivingInId = ApartmentId;
+            await _userManager.UpdateAsync(user);
+            return "Success";
+        }
+
+        public async Task<List<GetOwnerStudentsResponse>> GetOwnerStudentsResponses(List<UsersApartments> lop)
+        {
+            List<GetOwnerStudentsResponse> responses = new();
+            foreach (var item in lop)
+            {
+                if (item == null) continue;
+                var apartment=await _apartment.GetApartment(item.ApartmentsID);
+                var user=await _userManager.FindByIdAsync(item.UserID);
+                responses.Add(new GetOwnerStudentsResponse { ApartmentID=item.ApartmentsID,ApartmentName=apartment.Name ,email=user.Email,imageUrl=user.imageUrl,name=user.UserName,phone=user.PhoneNumber});
+            }
+            return responses;
+        }
+
         #endregion
 
         #region Email
@@ -526,6 +635,8 @@ namespace Services.Implementations
                 };
             }
         }
+
+
         #endregion
     }
 }

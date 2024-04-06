@@ -8,5 +8,6 @@ namespace Services.Abstracts
         Task<string> DeleteApartmentVideoFile(int apartmentId);
         List<string> GetApartmentdVideo(int apartmentId);
         List<ApartmentVideo> GetAll();
+        Task<string> DeleteVideo(int aprtmentId);
     }
 }

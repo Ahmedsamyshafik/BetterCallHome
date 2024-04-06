@@ -1,4 +1,5 @@
 ﻿
+using Domin.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Services.Abstracts;
 using Services.Implementations;
@@ -21,6 +22,8 @@ namespace Core
             services.AddScoped<ICommentServices, CommentServices>();
             services.AddScoped<IReactServices, ReactServices>();
             services.AddScoped<iNotifyServices, NotifyServices>();
+            services.AddScoped<IUserApartmentsRequestsService, UserApartmentsRequestsService>();
+            services.AddScoped<IUsersApartmentsServices, UsersApartmentsServices>();
 
             return services;
         }

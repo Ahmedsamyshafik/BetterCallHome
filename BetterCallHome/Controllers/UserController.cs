@@ -1,14 +1,17 @@
 ﻿using BetterCallHomeWeb.Base;
+using Core.Features.Apartments.Queries.Models;
 using Core.Features.Users.Commands.Models;
+using Core.Features.Users.Commands.Models.ApartmentsRquests;
 using Core.Features.Users.Queries.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace BetterCallHomeWeb.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class UserController : AppControllerBase
     {
 
@@ -45,6 +48,20 @@ namespace BetterCallHomeWeb.Controllers
             return NewResult(response);
 
             //return Ok();
+        }
+
+        [HttpPost("[action]")]
+        public async Task<IActionResult> RequestApartment(RequestApartmentStudentCommand command)
+        {
+            var response = await Mediator.Send(command);
+            return NewResult(response);
+        }
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetApartmentsMain([FromQuery]GetApartmentPagintation query)
+        {
+            var response = await Mediator.Send(query);
+            return Ok(response);
         }
 
     }
