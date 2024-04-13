@@ -6,6 +6,7 @@ namespace Services.Abstracts
     {
         Task<string> AddReactAsync(UserApartmentsReact react);
         Task<bool> CanReactOrNo(string userId, int apartmentId);
-        Task<List<UserApartmentsReact>> GetApartmentReacts(List<int> apartmentids);
+        Task<List<UserApartmentsReact>> GetApartmentsReacts(List<int> apartmentids);
+        int GetApartmentReacts(int apartmentId);
     }
 }

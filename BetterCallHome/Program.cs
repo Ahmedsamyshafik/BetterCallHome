@@ -125,7 +125,7 @@ builder.Services.AddCors(corsOptions =>
     corsOptions.AddPolicy("MyPolicy", corsPolicyBuilder =>
     {
         corsPolicyBuilder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-        corsPolicyBuilder.WithOrigins("http://localhost:3001","http://localhost:3000");
+      //  corsPolicyBuilder.WithOrigins("http://localhost:3001","http://localhost:3000");
 
     });
 });
@@ -163,30 +163,13 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
-//app.UseRouting();
 
+app.UseCors("MyPolicy"); // ? To enable front end to acces apis
 
 app.UseAuthentication();
 
 app.UseAuthorization();
-
-app.UseCors("MyPolicy"); // ? To enable front end to acces apis
-//app.UseMvc(); //?
-app.MapRazorPages();
-app.MapControllers();
-
-
-//app.MapControllerRoute(
-//    name: "areaRoute",
-//    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
-//);
-
-//app.MapControllerRoute(
-//    name: "default",
-//    pattern: "{controller=Home}/{action=Index}/{id?}");
-
-
-// 
+ 
 #region Data Seeder
 var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
 using (var scope = app.Services.CreateScope())
@@ -208,5 +191,7 @@ app.Use(async (context, next) =>
 app.UseSerilogRequestLogging();
 #endregion
 
+app.MapRazorPages();
+app.MapControllers();
 
 app.Run();

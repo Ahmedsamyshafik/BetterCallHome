@@ -6,6 +6,7 @@ namespace Services.Abstracts
     {
         Task<string> AddCommentAsync(UserApartmentsComment comment);
         Task<bool> CanCommentOrNo(string userid, int apartmentid, int Counter);
-        Task<List<UserApartmentsComment>> GetApartmentComments(List<int> apartmentids);
+        Task<List<UserApartmentsComment>> GetApartmentsComments(List<int> apartmentids);
+        List<UserApartmentsComment> GetApartmentComment(int apartmentid);
     }
 }

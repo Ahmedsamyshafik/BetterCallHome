@@ -1,5 +1,6 @@
 ﻿using Domin.Models;
 using Infrastructure.DTO;
+using Infrastructure.DTO.Apartments.Detail;
 using infrustructure.DTO.Apartments.Pagination;
 using Microsoft.AspNetCore.Http;
 
@@ -26,6 +27,8 @@ namespace Services.Abstracts
 
         IQueryable<GetApartmentPagintationResponse> getApartmentspaginate(string? search, string? city, string? gender,
          int countIn, decimal? min, decimal? max);
+
+        Task<GetApartmentDetailResponseDTO> GetApartmentDetails(int ApartmentId);
 
     }
 }

@@ -1,9 +1,11 @@
 ﻿using Domin.Constant;
 using Domin.Models;
 using Infrastructure.DTO;
+using Infrastructure.DTO.Apartments.Detail;
 using Infrastructure.Repository.IRepository;
 using infrustructure.DTO.Apartments.Pagination;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Services.Abstracts;
 using System.Reflection.Metadata;
@@ -19,11 +21,16 @@ namespace Services.Implementations
         private readonly IVideosServices _videosService;
         private readonly IUploadingMedia _media;
         private readonly IUsersApartmentsServices _usersApartmentsServices;
+        private readonly IReactServices _reactServices;
+        private readonly UserManager<ApplicationUser> _authService;
+        private readonly ICommentServices _commentServices;
         #endregion
 
         #region Ctor
         public ApartmentServices(IApartmentRepository apartmentRepository, IImagesServices imagesService,
-            IRoyalServices royalServices, IVideosServices videosService, IUploadingMedia media, IUsersApartmentsServices usersApartmentsServices)
+            IRoyalServices royalServices, IVideosServices videosService, IUploadingMedia media,
+            IUsersApartmentsServices usersApartmentsServices, IReactServices reactServices, UserManager<ApplicationUser> authService
+            , ICommentServices commentServices)
         {
             _apartmentRepository = apartmentRepository;
             _imagesService = imagesService;
@@ -31,6 +38,9 @@ namespace Services.Implementations
             _videosService = videosService;
             _media = media;
             _usersApartmentsServices = usersApartmentsServices;
+            _reactServices = reactServices;
+            _authService = authService;
+            _commentServices = commentServices;
         }
         #endregion
 
@@ -92,7 +102,7 @@ namespace Services.Implementations
             return x;
         }
 
-     
+
         public IQueryable<ApartmentPaginationPending> getPendingpaginate(string? search)
         {
             var lst = _apartmentRepository.GetTableNoTracking().
@@ -309,10 +319,67 @@ namespace Services.Implementations
             return result.AsQueryable();
         }
 
+        public async Task<GetApartmentDetailResponseDTO> GetApartmentDetails(int ApartmentId)
+        {
+            var result = new GetApartmentDetailResponseDTO();
 
+            var apartment = await GetApartment(ApartmentId);
+            result.ApartmentDescription = apartment.Description;
+            result.ApartmentName = apartment.Name;
+            result.ApartmentAddress = apartment.Address;
+            result.ApartmentCity = apartment.City;
+            result.TotalCount = apartment.NumberOfUsers;
+            result.ApartmentPrice = apartment.Price;
+            //Get Count in
+            var ExistingStudents = _usersApartmentsServices.GetCountStudentsInApartment(ApartmentId);
+            result.StudnetExistingIn = ExistingStudents;
+            //Get Apartment Files
+            var images = _imagesService.GetApartmentImgs(ApartmentId); // Cover Image?
+            List<string> tempURLS= new List<string>();
+            foreach (var image in images)
+            {
+                tempURLS.Add(image.ImageUrl);//null?
+            }
+            result.ApartmentsFiles= tempURLS;
+            var Video = _videosService.GetApartmentdVideo(ApartmentId);
+            result.ApartmentsFiles.Add(Video.FirstOrDefault());
+            //Likes
+            var likes = _reactServices.GetApartmentReacts(ApartmentId);
+            result.ApartmentLikes = likes;
+            //Owner!
+            var user = await _authService.FindByIdAsync(apartment.OwnerId);
+            result.OwnerName = user.UserName;
+            result.OwnerImageUrl = user.imageUrl;
+            //Owner Apartments Count
+            result.OwnerApartmentCount = GetOwnerApartments(user.Id).Count();
+            //Comments
+            var comments = _commentServices.GetApartmentComment(apartment.Id);
+            result.ApartmentComments =await HandleApartmentComments(comments);
+            return result;
+
+        }
 
         #endregion
 
+        #endregion
+
+        #region Private Functions
+        private async Task<List<ApartmentComments>> HandleApartmentComments(List<UserApartmentsComment> comments)
+        {
+            var result = new List<ApartmentComments>();
+            foreach (var comment in comments)
+            {
+                var temp = new ApartmentComments()
+                {
+                    CommentID = comment.Id,
+                    CommentValue = comment.Comment,
+                    UserCommentName = comment.user.UserName,
+                    UserCommentImageUrl = comment.user.imageUrl
+                };
+                result.Add(temp);
+            }
+            return result;
+        }
         #endregion
 
 

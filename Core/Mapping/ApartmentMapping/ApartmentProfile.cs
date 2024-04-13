@@ -12,6 +12,8 @@ namespace Core.Mapping.ApartmentMapping
 
             GetApartmentsForOwnerQueryMapping();
             PaginationApartmentMain();
+            GetApartmentComments();
+            GetApartmentDetailsDTOToResponse();
 
         }
     }

@@ -36,7 +36,7 @@ namespace Services.Implementations
             return true;
         }
 
-        public async Task<List<UserApartmentsComment>> GetApartmentComments(List<int> apartmentids)
+        public async Task<List<UserApartmentsComment>> GetApartmentsComments(List<int> apartmentids)
         {
             var comments = new List<UserApartmentsComment>();
             foreach (var id in apartmentids)
@@ -48,6 +48,10 @@ namespace Services.Implementations
                 }
             }
             return comments;
+        }
+        public List<UserApartmentsComment> GetApartmentComment(int apartmentid)
+        {
+            return _comment.GetTableNoTracking().Include(x=>x.user).Where(x => x.ApartmentId == apartmentid).ToList();
         }
         #endregion
 

@@ -33,7 +33,7 @@ namespace Services.Implementations
             return true;
         }
 
-        public async Task<List<UserApartmentsReact>> GetApartmentReacts(List<int> apartmentids)
+        public async Task<List<UserApartmentsReact>> GetApartmentsReacts(List<int> apartmentids)
         {
             var likes = new List<UserApartmentsReact>();
             foreach (var id in apartmentids)
@@ -45,6 +45,13 @@ namespace Services.Implementations
                 }
             }
             return likes;
+        }
+        public int GetApartmentReacts(int apartmentId)
+        {
+
+            return   _react.GetTableNoTracking().Where(x => x.ApartmentId == apartmentId).Count();
+                
+             
         }
         #endregion
 

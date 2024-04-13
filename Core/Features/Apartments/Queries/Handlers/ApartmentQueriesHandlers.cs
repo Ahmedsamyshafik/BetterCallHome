@@ -8,6 +8,7 @@ using infrustructure.DTO.Apartments.Pagination;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Services.Abstracts;
+using static System.Net.Mime.MediaTypeNames;
 
 
 namespace Core.Features.Apartments.Queries.Handlers
@@ -16,7 +17,8 @@ namespace Core.Features.Apartments.Queries.Handlers
         IRequestHandler<GetNotificationApartmentQuery, Response<NotificationApartmentResponse>>,
         IRequestHandler<GetPendingApartmentsQuery, PaginatedResult<GetPendingApartmentsPaginationResponse>>,
         IRequestHandler<GetApartmentsForOwnerQuery, PaginatedResult<GetPendingApartmentsForOwnerPaginationResponse>>,
-        IRequestHandler<GetApartmentPagintation, PaginatedResult<GetApartmentPagintationResponse>>
+        IRequestHandler<GetApartmentPagintation, PaginatedResult<GetApartmentPagintationResponse>>,
+        IRequestHandler<GetApartmentDetailQuery, Response<GetApartmentDetailResponse>>
     {
         #region Fields
         private readonly UserManager<ApplicationUser> _userManager;
@@ -25,11 +27,12 @@ namespace Core.Features.Apartments.Queries.Handlers
         private readonly IReactServices _reactServices;
         private readonly ICommentServices _commentServices;
         private readonly IMapper _mapper;
+        private readonly IUsersApartmentsServices _usersApartments;
         #endregion
 
         #region Ctor
         public ApartmentQueriesHandlers(UserManager<ApplicationUser> userManager, IViewServices viewServices, IApartmentServices apartmentServices
-                 , IReactServices reactServices, ICommentServices commentServices, IMapper mapper)
+                 , IReactServices reactServices, ICommentServices commentServices, IMapper mapper, IUsersApartmentsServices usersApartments)
         {
             _userManager = userManager;
             _viewServices = viewServices;
@@ -37,6 +40,7 @@ namespace Core.Features.Apartments.Queries.Handlers
             _reactServices = reactServices;
             _commentServices = commentServices;
             _mapper = mapper;
+            _usersApartments = usersApartments;
         }
         #endregion
 
@@ -61,10 +65,10 @@ namespace Core.Features.Apartments.Queries.Handlers
             }
             List<UserApartmentsReact> reacts = new();
 
-            if (apartmentIds.Count > 0) { reacts = await _reactServices.GetApartmentReacts(apartmentIds); }
+            if (apartmentIds.Count > 0) { reacts = await _reactServices.GetApartmentsReacts(apartmentIds); }
             //---get Comments (Same Like Reacts)---
             List<UserApartmentsComment> comments = new();
-            if (apartmentIds.Count > 0) { comments = await _commentServices.GetApartmentComments(apartmentIds); }
+            if (apartmentIds.Count > 0) { comments = await _commentServices.GetApartmentsComments(apartmentIds); }
 
             //return Resoonse!
             var response = new NotificationApartmentResponse();
@@ -98,13 +102,26 @@ namespace Core.Features.Apartments.Queries.Handlers
         {
             //Get All Apartments in Pagination
             var test = _apartmentServices.getApartmentspaginate(request.Search, request.City, request.Gender, request.CountInApartment, request.minPrice, request.maxPrice);
-           test.OrderByDescending(x=>x.PublishedAt);
+            test.OrderByDescending(x => x.PublishedAt);
             //from  x=>x!!
             var paginationList = await _mapper.ProjectTo<GetApartmentPagintationResponse>(test)
               .ToPaginatedListAsync(request.PageNumber, request.PageSize);
 
 
             return paginationList;
+        }
+
+        public async Task<Response<GetApartmentDetailResponse>> Handle(GetApartmentDetailQuery request, CancellationToken cancellationToken)
+        {
+            var lsta = await _apartmentServices.GetApartmentDetails(request.Id);
+            var x = lsta.ApartmentComments.AsQueryable();
+            //mapping?
+            var paginationComments = await _mapper.ProjectTo<ApartmentCommentsResponse>(x)
+              .ToPaginatedListAsync(request.PageNumber, request.PageSize);
+            //mapping to response
+            var response = _mapper.Map<GetApartmentDetailResponse>(lsta);
+            response.ApartmentComments = paginationComments;
+            return Success(response);
         }
 
 
