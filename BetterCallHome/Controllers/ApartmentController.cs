@@ -42,10 +42,18 @@ namespace BetterCallHomeWeb.Controllers
         }
 
         [HttpGet("[action]")]
-        public async Task<IActionResult> GetApartmentDetails([FromQuery]GetApartmentDetailQuery query)
+        public async Task<IActionResult> GetApartmentDetails([FromQuery] GetApartmentDetailQuery query)
         {
             var response = await Mediator.Send(query);
             return NewResult(response);
+        }
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetApartmentLandingPage()
+        {
+            GetApartmentLandingPageQuery query = new();
+            var response = await Mediator.Send(query);
+            return NewResult(response);
+
         }
 
     }

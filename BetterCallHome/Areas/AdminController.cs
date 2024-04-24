@@ -16,7 +16,7 @@ namespace BetterCallHomeWeb.Areas
     {
         //Reviews-Panding
         [HttpGet("[action]")]
-    [Authorize(Roles = Constants.AdminRole)]
+        [Authorize(Roles = Constants.AdminRole)]
 
         public async Task<IActionResult> GetPendingApartments([FromQuery] GetPendingApartmentsQuery query)
         {
@@ -41,6 +41,13 @@ namespace BetterCallHomeWeb.Areas
         {
             var response = await Mediator.Send(query);
             return Ok(response);
+        }
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetUsersNumbers()
+        {
+            var query = new GetAllUserNumbers();
+            var response = await Mediator.Send(query);
+            return NewResult(response);
         }
 
         [HttpDelete("[action]")]

@@ -10,6 +10,7 @@ namespace Services.Abstracts
         List<ApartmentImages> GetApartmentImgs(int apartmentId);
         List<ApartmentImages> GetAlll();
         Task<string> DeleteApartmentCoverImage(int apartmentId);
-        Task<string> DeleteApartmentPics(int apartmentId);
+        Task<string> DeleteApartmentArrayPicsFiles(int apartmentId);
+        Task<string> DeleteApartmentArrayPics(int apartmentId);
     }
 }

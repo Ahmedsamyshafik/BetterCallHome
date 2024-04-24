@@ -159,7 +159,10 @@ namespace Core.Features.Users.Commands.Handlers
             //check user , apartment
             var Existe = await _auth.UserAndApartmentISExist(request.UserID, request.ApartmentID);
             if (Existe == null) return NotFound<string>("No user Or Apartment with this id!");
-            //add to table for waiting requests
+            //(Check if Exist with other Apartment)
+            var isExist = _requestsService.CheckStudentRequestOtherApartment(request.UserID, request.ApartmentID);
+            if (isExist) return BadRequest<string>("Can't Enroll in two apartments in same time..!");
+            //add to table for waiting requests 
             var paramter = _mapper.Map<UserApartmentsRequests>(request);
             var apartment = await _apartmentServices.GetApartment(request.ApartmentID);
             paramter.OwnerID = apartment.OwnerId;

@@ -1,4 +1,5 @@
 ﻿using Domin.Models;
+using static Services.Implementations.UsersApartmentsServices;
 
 namespace Services.Abstracts
 {
@@ -8,5 +9,6 @@ namespace Services.Abstracts
         Task<List<UsersApartments>> GetRecordsByApartmentdIds(List<int> ids);
         bool AnyStudnets(int apartmentId);
         int GetCountStudentsInApartment(int ApartmentID);
+        Task<ReturnedNotifyForStudent> GetNotyForAcceptStudentAsync(string userID);
     }
 }

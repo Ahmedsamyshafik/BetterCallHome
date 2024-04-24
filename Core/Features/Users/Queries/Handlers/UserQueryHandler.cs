@@ -17,7 +17,9 @@ namespace Core.Features.Users.Queries.Handlers
         IRequestHandler<GetProfileDataQuery, Response<UserDataResponse>>,
         IRequestHandler<GetAllUserQuery, PaginatedResult<GetAllUsersResponse>>,
         IRequestHandler<GetApartmentsRequestsQuery, PaginatedResult<ApartmentRequestsResponse>>,
-        IRequestHandler<GetOwnerStudents, PaginatedResult<GetOwnerStudentsResponse>>
+        IRequestHandler<GetOwnerStudents, PaginatedResult<GetOwnerStudentsResponse>>,
+        IRequestHandler<GetUsersCountForOwner, Response<GetUsersCountForOwnerResponse>>,
+        IRequestHandler<GetAllUserNumbers, Response<GetAllUserNumbersResponse>>
 
     {
         #region Inject
@@ -69,7 +71,7 @@ namespace Core.Features.Users.Queries.Handlers
         public async Task<PaginatedResult<GetAllUsersResponse>> Handle(GetAllUserQuery request, CancellationToken cancellationToken)
         {
 
-            var list = await _authService.GetAllUsers(request.Search);
+            var list = await _authService.GetAllUsers(request.Search, request.Role);
             var x = list.AsQueryable();
             var paginatin = await x.ToPaginatedListAsync(request.PageNumber, request.PageSize);
             return paginatin;
@@ -95,11 +97,52 @@ namespace Core.Features.Users.Queries.Handlers
             //Get Whole Record from userApartmnet Table
             var usersApartmentsRecords = await _usersApartmentsServices.GetRecordsByApartmentdIds(apartmentsids);
             //Get Needed Data from userid,apartmentid
-            var Students=await _authService.GetOwnerStudentsResponses(usersApartmentsRecords);
+            var Students = await _authService.GetOwnerStudentsResponses(usersApartmentsRecords); // may replace by automapper
             //Pagination
             var x = Students.AsQueryable();
             var paginatin = await x.ToPaginatedListAsync(request.PageNumber, request.PageSize);
             return paginatin;
+        }
+
+        public async Task<Response<GetUsersCountForOwnerResponse>> Handle(GetUsersCountForOwner request, CancellationToken cancellationToken)
+        {
+            //Get Owner Apartments
+            var apartments = await _apartmentServices.GetOwnerApartmentsAsList(request.OwnerId);
+            var apartmentsids = new List<int>();
+            foreach (var apartment in apartments) { apartmentsids.Add(apartment.Id); }
+            //Get Records from userApartmentTable .Count
+            var usersApartmentsRecords = await _usersApartmentsServices.GetRecordsByApartmentdIds(apartmentsids);
+            var Students = await _authService.GetOwnerStudentsResponses(usersApartmentsRecords); // may replace by automapper
+            //Get Requests Students
+            var lst = await _authService.GetStudentRequestApartments(request.OwnerId);
+            GetUsersCountForOwnerResponse response = new GetUsersCountForOwnerResponse()
+            {
+                OwnStudents = Students.Count(),
+                RequestedStudents = lst.Count()
+            };
+            //return
+            return Success(response);
+        }
+
+        public async Task<Response<GetAllUserNumbersResponse>> Handle(GetAllUserNumbers request, CancellationToken cancellationToken)
+        {
+            //Get All Users 
+            var Allusers = await _authService.GetAllUsers(null, null);
+            //Seperate Owner/ Users
+            int students = 0;
+            int owners = 0;
+            foreach(var user in Allusers)
+            {
+                if(user.Role==Constants.UserRole) { students++; }
+                if(user.Role==Constants.OwnerRole) { owners++; }
+            }
+            var response = new GetAllUserNumbersResponse()
+            {
+                AllUsers = Allusers.Count(),
+                Owners=owners,
+                Students=students
+            };
+            return Success(response);
         }
 
         #endregion

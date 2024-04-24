@@ -180,6 +180,7 @@ namespace Services.Implementations
             returned.Expier = JwtSecuirtyToken.ValidTo;
             returned.Token = new JwtSecurityTokenHandler().WriteToken(JwtSecuirtyToken);
             returned.UserId = user.Id;
+            returned.UserImageUrl = user.imageUrl;
             return returned;
         }
 
@@ -274,7 +275,7 @@ namespace Services.Implementations
             return "";
         }
 
-        public async Task<List<GetAllUsersResponse>> GetAllUsers(string? search)
+        public async Task<List<GetAllUsersResponse>> GetAllUsers(string? search,string? Role)
         {
             var usersList = await _userManager.Users.ToListAsync();
             if (search != null)
@@ -282,6 +283,7 @@ namespace Services.Implementations
                 usersList = usersList.Where(x => x.UserName.Contains(search)).ToList();
             }
             var response = new List<GetAllUsersResponse>();
+            var Finalresponse = new List<GetAllUsersResponse>();
 
             foreach (var user in usersList)
             {
@@ -302,6 +304,16 @@ namespace Services.Implementations
                 res.Image = user.imageUrl;
                 res.userId = user.Id;
                 response.Add(res);
+            }
+            //Check Role !
+            if (Role != null)
+            {
+                foreach(var user in response)
+                {
+                    if (user.Role!=Role) continue;
+                    Finalresponse.Add(user);
+                }
+                return Finalresponse;
             }
             return response;
         }
@@ -432,9 +444,9 @@ namespace Services.Implementations
             foreach (var item in lop)
             {
                 if (item == null) continue;
-                var apartment=await _apartment.GetApartment(item.ApartmentsID);
+                var apartment=await _apartment.GetApartment(item.ApartmentID);
                 var user=await _userManager.FindByIdAsync(item.UserID);
-                responses.Add(new GetOwnerStudentsResponse { ApartmentID=item.ApartmentsID,ApartmentName=apartment.Name ,email=user.Email,imageUrl=user.imageUrl,name=user.UserName,phone=user.PhoneNumber});
+                responses.Add(new GetOwnerStudentsResponse { ApartmentID=item.ApartmentID,ApartmentName=apartment.Name ,email=user.Email,imageUrl=user.imageUrl,name=user.UserName,phone=user.PhoneNumber});
             }
             return responses;
         }

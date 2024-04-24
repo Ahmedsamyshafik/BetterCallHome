@@ -8,16 +8,16 @@ namespace Domin.Models
         [Key]
         public int id { set; get; }
         public string UserID { set; get; }
-
-        public int ApartmentsID { set; get;}
+        [ForeignKey("ApartmentFK")]
+        public int ApartmentID { set; get;}
 
         public DateTime DateTime { set; get; }= DateTime.UtcNow;
 
         [ForeignKey("UserID")]
         public ICollection<ApplicationUser>? Users { set; get; }
 
-        [ForeignKey("ApartmentID")]
-        public virtual Apartment? Apartment { set; get; }
+       
+        public virtual Apartment? ApartmentFK { set; get; }
 
     }
 }

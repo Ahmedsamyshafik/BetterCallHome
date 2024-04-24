@@ -19,6 +19,7 @@
 
         public string Message { get; set; }
 
+        public string? UserImageUrl { get; set; }
         public bool IsAuthenticated { get; set; }
 
         public string Role { get; set; }

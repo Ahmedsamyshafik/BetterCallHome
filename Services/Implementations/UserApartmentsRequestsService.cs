@@ -49,6 +49,11 @@ namespace Services.Implementations
             await _requestsRepo.DeleteAsync(GetRecord(id));
             return "";
         }
+
+        public bool CheckStudentRequestOtherApartment(string userID, int apartmentId)
+        {
+            return _requestsRepo.GetTableNoTracking().Where(x => x.UserID == userID && x.ApartmentID != apartmentId).Any();
+        }
         #endregion
     }
 }

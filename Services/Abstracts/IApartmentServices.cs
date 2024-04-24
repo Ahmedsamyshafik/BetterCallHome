@@ -29,6 +29,7 @@ namespace Services.Abstracts
          int countIn, decimal? min, decimal? max);
 
         Task<GetApartmentDetailResponseDTO> GetApartmentDetails(int ApartmentId);
+        List<Apartment> GetApartmentsTopRateForLandingPage();
 
     }
 }

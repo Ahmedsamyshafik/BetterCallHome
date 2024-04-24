@@ -22,7 +22,7 @@ namespace Services.Abstracts
         bool NameIsExist(string name, string email);
         Task<string> UpdateProfile(ApplicationUser user, IFormFile? img, string requestSchema, HostString hostString);
         Task<ReturnedUserDataDto> GetUserData(string ViewerID, string ViewedID);
-        Task<List<GetAllUsersResponse>> GetAllUsers(string? search);
+        Task<List<GetAllUsersResponse>> GetAllUsers(string? search,string? Role);
         Task<string> DeleteUser(string userId);
         Task<string> GetUserMaxRole(string userId);
 

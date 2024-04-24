@@ -35,7 +35,9 @@ namespace BetterCallHomeWeb.Areas
                 RoyalDocument = command.RoyalDocument,
                 UserId = command.UserId,
                 video = command.video,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Gender = command.Gender,
+                City = command.City,
             };
             var response = await Mediator.Send(send);
             return NewResult(response);
@@ -73,6 +75,7 @@ namespace BetterCallHomeWeb.Areas
         }
 
         [HttpGet("[action]")]
+        [Authorize(Roles = Constants.OwnerRole)]
         public async Task<IActionResult> GetApartmentsRequests([FromQuery] GetApartmentsRequestsQuery query)
         {
             var response = await Mediator.Send(query);
@@ -80,6 +83,7 @@ namespace BetterCallHomeWeb.Areas
         }
 
         [HttpPost("[action]")]
+        [Authorize(Roles = Constants.OwnerRole)]
         public async Task<IActionResult> ApartmentsRequestsHandle(ActionsRequestedApartmentStudentCommand command)
         {
             var response = await Mediator.Send(command);
@@ -87,13 +91,23 @@ namespace BetterCallHomeWeb.Areas
         }
 
         [HttpGet("[action]")]
+        [Authorize(Roles = Constants.OwnerRole)]
         public async Task<IActionResult> GetOwnerStudents([FromQuery] GetOwnerStudents query)
         {
             var response = await Mediator.Send(query);
             return Ok(response);
         }
 
+        [HttpGet("[action]")]
+        [Authorize(Roles = Constants.OwnerRole)]
+        public async Task<IActionResult> GetApartmentForEdit([FromQuery] GetApartmentForEditQuery query)
+        {
+            var response = await Mediator.Send(query);
+            return NewResult(response);
+        }
+
         [HttpPut("[action]")]
+        [Authorize(Roles = Constants.OwnerRole)]
         public async Task<IActionResult> EditApartment([FromForm] EditApartmentDTO DTO)
         {
             //User Token !! id !
@@ -108,10 +122,20 @@ namespace BetterCallHomeWeb.Areas
                 Pics = DTO.Pics,
                 Video = DTO.Video,
                 Title = DTO.Title,
+                gender = DTO.gender,
+                City = DTO.City,
+                Room = DTO.Room,
                 Requesthost = Request.Host,
                 RequestScheme = Request.Scheme
             };
             var response = await Mediator.Send(command);
+            return NewResult(response);
+        }
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetUsersCountForOwner([FromQuery] GetUsersCountForOwner dto)
+        {
+            var response=await Mediator.Send(dto);  
             return NewResult(response);
         }
 

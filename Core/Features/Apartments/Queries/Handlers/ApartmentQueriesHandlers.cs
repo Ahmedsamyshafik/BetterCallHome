@@ -8,7 +8,7 @@ using infrustructure.DTO.Apartments.Pagination;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Services.Abstracts;
-using static System.Net.Mime.MediaTypeNames;
+using static Services.Implementations.UsersApartmentsServices;
 
 
 namespace Core.Features.Apartments.Queries.Handlers
@@ -18,7 +18,9 @@ namespace Core.Features.Apartments.Queries.Handlers
         IRequestHandler<GetPendingApartmentsQuery, PaginatedResult<GetPendingApartmentsPaginationResponse>>,
         IRequestHandler<GetApartmentsForOwnerQuery, PaginatedResult<GetPendingApartmentsForOwnerPaginationResponse>>,
         IRequestHandler<GetApartmentPagintation, PaginatedResult<GetApartmentPagintationResponse>>,
-        IRequestHandler<GetApartmentDetailQuery, Response<GetApartmentDetailResponse>>
+        IRequestHandler<GetApartmentDetailQuery, Response<GetApartmentDetailResponse>>,
+        IRequestHandler<GetApartmentForEditQuery, Response<GetApartmentForEditResponse>>,
+        IRequestHandler<GetApartmentLandingPageQuery, Response<List<GetApartmentLandingPageResponse>>>
     {
         #region Fields
         private readonly UserManager<ApplicationUser> _userManager;
@@ -28,11 +30,15 @@ namespace Core.Features.Apartments.Queries.Handlers
         private readonly ICommentServices _commentServices;
         private readonly IMapper _mapper;
         private readonly IUsersApartmentsServices _usersApartments;
+        private readonly IUserApartmentsRequestsService _usersApartmentsRequests;
+        private readonly IImagesServices _images;
+        private readonly IVideosServices _videos;
         #endregion
 
         #region Ctor
         public ApartmentQueriesHandlers(UserManager<ApplicationUser> userManager, IViewServices viewServices, IApartmentServices apartmentServices
-                 , IReactServices reactServices, ICommentServices commentServices, IMapper mapper, IUsersApartmentsServices usersApartments)
+                 , IReactServices reactServices, ICommentServices commentServices, IMapper mapper, IUsersApartmentsServices usersApartments,
+            IImagesServices images, IUserApartmentsRequestsService usersApartmentsRequests, IVideosServices videos)
         {
             _userManager = userManager;
             _viewServices = viewServices;
@@ -41,6 +47,9 @@ namespace Core.Features.Apartments.Queries.Handlers
             _commentServices = commentServices;
             _mapper = mapper;
             _usersApartments = usersApartments;
+            _images = images;
+            _usersApartmentsRequests = usersApartmentsRequests;
+            _videos = videos;
         }
         #endregion
 
@@ -69,10 +78,19 @@ namespace Core.Features.Apartments.Queries.Handlers
             //---get Comments (Same Like Reacts)---
             List<UserApartmentsComment> comments = new();
             if (apartmentIds.Count > 0) { comments = await _commentServices.GetApartmentsComments(apartmentIds); }
-
+            //Get Requests 
+            var OwnerRequests = _usersApartmentsRequests.GetOwnerRequests(request.UserId);
+            //Get Response?
+            var StudentResponse = await _usersApartments.GetNotyForAcceptStudentAsync(request.UserId);//check IsExist
+            if (StudentResponse.isEixst)
+            {
+                //ApartmentID?=> Apartment=>Owner
+                var owner = await _apartmentServices.GetApartment(StudentResponse.apartmentId);
+                StudentResponse.OwnerID = owner.OwnerId;
+            }
             //return Resoonse!
             var response = new NotificationApartmentResponse();
-            response.notifies = await HandleMapping(comments, reacts, userViews);
+            response.notifies = await HandleMapping(comments, reacts, userViews, OwnerRequests, StudentResponse);//Requests,Responses
             return Success(response);
 
         }
@@ -91,6 +109,7 @@ namespace Core.Features.Apartments.Queries.Handlers
         {
             var test = _apartmentServices.getpaginateForOwner(request.OwnerId, request.Search);
             test.OrderBy(x => x.PublishedAt);
+            
 
             var paginationList = await _mapper.ProjectTo<GetPendingApartmentsForOwnerPaginationResponse>(test)
                 .ToPaginatedListAsync(request.PageNumber, request.PageSize);
@@ -124,11 +143,45 @@ namespace Core.Features.Apartments.Queries.Handlers
             return Success(response);
         }
 
+        public async Task<Response<GetApartmentForEditResponse>> Handle(GetApartmentForEditQuery request, CancellationToken cancellationToken)
+        {
+            //Get Apartment
+            var apartment = await _apartmentServices.GetApartment(request.ApartmentId);
+            if (apartment == null) return NotFound<GetApartmentForEditResponse>();
+            //Mapping
+            //Apartment=>GetApartmentForEditRespons
+            var response = _mapper.Map<GetApartmentForEditResponse>(apartment);
+            //Assing Pics
+            var images = _images.GetApartmentImgs(apartment.Id);
+            List<string> urls = new();
+            foreach (var image in images)
+            {
+                urls.Add(image.ImageUrl);
+            }
+            response.ApartmentPics = urls;
+            //Asing Video ?
+            var Vid = _videos.GetApartmentdVideo(apartment.Id);
+            response.ApartmentVideo = Vid.FirstOrDefault();
+            //Return
+            return Success(response);
+        }
+
+        public async Task<Response<List<GetApartmentLandingPageResponse>>> Handle(GetApartmentLandingPageQuery request, CancellationToken cancellationToken)
+        {
+            // Get First 3 Apartment According To Likes
+            var apartments = _apartmentServices.GetApartmentsTopRateForLandingPage();
+            //mapping 
+            var response = _mapper.Map<List<GetApartmentLandingPageResponse>>(apartments);
+            //return
+            return Success(response);
+        }
+
 
         #endregion
 
         #region Private Fucntions
-        private async Task<List<ReturnedNotify>> HandleMapping(List<UserApartmentsComment> comments, List<UserApartmentsReact> reacts, List<View> views)
+        private async Task<List<ReturnedNotify>> HandleMapping(List<UserApartmentsComment> comments, List<UserApartmentsReact> reacts, List<View> views
+            , List<UserApartmentsRequests> OwnerRequests, ReturnedNotifyForStudent StudentResponse)
         {
             var result = new List<ReturnedNotify>();
 
@@ -191,6 +244,42 @@ namespace Core.Features.Apartments.Queries.Handlers
                     };
                     result.Add(viewMapping);
                 }
+            }
+
+            if (OwnerRequests.Count() > 0)
+            {
+                foreach (var request in OwnerRequests)
+                {
+                    var user = await _userManager.FindByIdAsync(request.UserID);
+
+                    string paths = user.imageUrl;
+                    //Service To Upload Image By Path + imgae Name.(check)
+                    var RequestMapping = new ReturnedNotify
+                    {
+                        Type = "OwnerRequest",
+                        OperationId = request.Id,
+                        UserName = user.UserName,
+                        date = request.DateTime,
+                        UserImage = paths
+                    };
+                    result.Add(RequestMapping);
+                }
+            }
+
+            if (StudentResponse.isEixst == true)
+            {
+                var owner = await _userManager.FindByIdAsync(StudentResponse.OwnerID);
+                var RequestMapping = new ReturnedNotify
+                {
+                    Type = "Accept",
+                    OperationId = StudentResponse.OperationId,
+                    UserName = owner.UserName,//Owner Name !
+                    date = StudentResponse.date,
+                    UserImage = owner.imageUrl
+                };
+                result.Add(RequestMapping);
+
+
             }
 
             return result;

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240408024332_why")]
-    partial class why
+    [Migration("20240414183403_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -40,6 +40,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Apartments")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("City")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CoverImageName")
@@ -82,6 +85,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<int>("Room")
                         .HasColumnType("int");
+
+                    b.Property<string>("gender")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -393,9 +399,6 @@ namespace Infrastructure.Migrations
                     b.Property<int>("ApartmentID")
                         .HasColumnType("int");
 
-                    b.Property<int>("ApartmentsID")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("datetime2");
 
@@ -691,13 +694,13 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domin.Models.UsersApartments", b =>
                 {
-                    b.HasOne("Domin.Models.Apartment", "Apartment")
+                    b.HasOne("Domin.Models.Apartment", "ApartmentFK")
                         .WithMany("StudentsApartment")
                         .HasForeignKey("ApartmentID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Apartment");
+                    b.Navigation("ApartmentFK");
                 });
 
             modelBuilder.Entity("Domin.Models.View", b =>

@@ -14,6 +14,9 @@ namespace Core.Mapping.ApartmentMapping
             PaginationApartmentMain();
             GetApartmentComments();
             GetApartmentDetailsDTOToResponse();
+            GetApartmentEditMapper();
+            GetApartmentTopRate();
+            EditApartmentCommandMapping();
 
         }
     }

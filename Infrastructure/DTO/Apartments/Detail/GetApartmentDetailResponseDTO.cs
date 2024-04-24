@@ -2,7 +2,8 @@
 {
     public class GetApartmentDetailResponseDTO
     {
-        public ICollection<string> ApartmentsFiles { get; set; }
+        public ICollection<string> ApartmentsImages { get; set; }
+        public string? ApartmentsVideo { get; set; }
         public string ApartmentName { get; set; }
         public decimal ApartmentPrice { get; set; }
         public string ApartmentAddress { get; set; }

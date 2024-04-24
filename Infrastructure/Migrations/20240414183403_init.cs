@@ -69,6 +69,8 @@ namespace Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    City = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    gender = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Room = table.Column<int>(type: "int", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
@@ -132,6 +134,48 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "royalDocuments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ApartmentID = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_royalDocuments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_royalDocuments_Apartment_ApartmentID",
+                        column: x => x.ApartmentID,
+                        principalTable: "Apartment",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UsersApartments",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserID = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ApartmentID = table.Column<int>(type: "int", nullable: false),
+                    DateTime = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UsersApartments", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_UsersApartments_Apartment_ApartmentID",
+                        column: x => x.ApartmentID,
+                        principalTable: "Apartment",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetUsers",
                 columns: table => new
                 {
@@ -144,7 +188,8 @@ namespace Infrastructure.Migrations
                     ImageName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Counter = table.Column<int>(type: "int", nullable: false),
                     CodeConfirm = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CurrentLivingInId = table.Column<int>(type: "int", nullable: false),
+                    CurrentLivingInId = table.Column<int>(type: "int", nullable: true),
+                    UserID = table.Column<int>(type: "int", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -164,32 +209,15 @@ namespace Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AspNetUsers_Apartment_CurrentLivingInId",
+                        name: "FK_AspNetUsers_UsersApartments_CurrentLivingInId",
                         column: x => x.CurrentLivingInId,
-                        principalTable: "Apartment",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "royalDocuments",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ApartmentID = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_royalDocuments", x => x.Id);
+                        principalTable: "UsersApartments",
+                        principalColumn: "id");
                     table.ForeignKey(
-                        name: "FK_royalDocuments_Apartment_ApartmentID",
-                        column: x => x.ApartmentID,
-                        principalTable: "Apartment",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_AspNetUsers_UsersApartments_UserID",
+                        column: x => x.UserID,
+                        principalTable: "UsersApartments",
+                        principalColumn: "id");
                 });
 
             migrationBuilder.CreateTable(
@@ -436,6 +464,11 @@ namespace Infrastructure.Migrations
                 column: "CurrentLivingInId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_UserID",
+                table: "AspNetUsers",
+                column: "UserID");
+
+            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
@@ -477,6 +510,11 @@ namespace Infrastructure.Migrations
                 name: "IX_UserApartmentsRequests_UserID",
                 table: "UserApartmentsRequests",
                 column: "UserID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UsersApartments_ApartmentID",
+                table: "UsersApartments",
+                column: "ApartmentID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_views_ApplicationUserId",
@@ -543,6 +581,9 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "UsersApartments");
 
             migrationBuilder.DropTable(
                 name: "Apartment");

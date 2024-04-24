@@ -143,6 +143,8 @@ builder.Services.AddServicesDependencies();
 
 //--- Razor Page
 builder.Services.AddRazorPages();
+//For File Image
+ builder.Services.AddHttpClient();
 
 #region Add Serilog
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();

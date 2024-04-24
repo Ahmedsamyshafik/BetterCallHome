@@ -31,7 +31,11 @@ namespace Services.Implementations
         public async Task<string> DeleteVideo(int aprtmentId)
         {
             var video = _video.GetTableNoTracking().Where(x => x.ApartmentID == aprtmentId).FirstOrDefault();
-            await _video.DeleteAsync(video);
+            if (video != null)
+            {
+                await _video.DeleteAsync(video);
+            }
+
             return "";
         }
 

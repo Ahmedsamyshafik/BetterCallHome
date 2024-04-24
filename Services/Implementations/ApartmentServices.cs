@@ -102,6 +102,11 @@ namespace Services.Implementations
             return x;
         }
 
+        public List<Apartment> GetApartmentsTopRateForLandingPage()
+        {
+            return _apartmentRepository.GetTableNoTracking().OrderByDescending(x=>x.Likes).Take(3).ToList();
+        }
+
 
         public IQueryable<ApartmentPaginationPending> getPendingpaginate(string? search)
         {
@@ -176,7 +181,7 @@ namespace Services.Implementations
                 temp.Address = apart.Address;
                 temp.ApartmentTitle = apart.Name;
                 temp.NumberOfUsers = apart.NumberOfUsers;
-                temp.ApartmentCoverImage = apart.CoverImageName;
+                temp.ApartmentCoverImage = apart.CoverImageUrl;
                 temp.PublishedAt = apart.CreatedAt;
                 temp.Salary = apart.Price;
                 temp.ApartmentID = apart.Id;
@@ -215,11 +220,35 @@ namespace Services.Implementations
         {
             var DBApartment = await _apartmentRepository.GetByIdAsync(apartment.Id);
             DBApartment.Address = apartment.Address;
+            DBApartment.City = apartment.City;
             DBApartment.Description = apartment.Description;
             DBApartment.Price = apartment.Price;
             DBApartment.Name = apartment.Name;
             DBApartment.NumberOfUsers = apartment.NumberOfUsers;
             //images-videos
+            if (Pics != null)
+            {
+                //Delete Old ///////HERE !!
+                await _imagesService.DeleteApartmentArrayPicsFiles(apartment.Id);
+                await _imagesService.DeleteApartmentArrayPics(apartment.Id);
+                //
+
+
+                // await _imagesService.DeleteApartmentPics(apartment.Id);
+                //Saving New 
+                foreach (var p in Pics)
+                {
+                    //Save New
+                    var x = await _media.SavingImage(p, requestSchema, host, Constants.ApartmentPics);
+                    if (x.success) await _imagesService.AddImage(x.message, apartment.Id, x.name);
+                    else
+                    {
+                        return "Faild in  images";
+                    }
+                }
+
+            }
+
             //CoverImage
             if (CoverImage != null)
             {
@@ -239,23 +268,7 @@ namespace Services.Implementations
                 }
 
             }
-            if (Pics != null)
-            {
-                //Delete Old
-                await _imagesService.DeleteApartmentPics(apartment.Id);
-                //Saving New 
-                foreach (var p in Pics)
-                {
-                    //Save New
-                    var x = await _media.SavingImage(p, requestSchema, host, Constants.ApartmentPics);
-                    if (x.success) await _imagesService.AddImage(x.message, apartment.Id, x.name);
-                    else
-                    {
-                        return "Faild in  images";
-                    }
-                }
 
-            }
             if (Video != null)
             {   //Delete old (File)
                 await _videosService.DeleteApartmentVideoFile(apartment.Id);
@@ -275,6 +288,8 @@ namespace Services.Implementations
                 }
 
             }
+
+            await _apartmentRepository.UpdateAsync(DBApartment);
             return "Success";
         }
 
@@ -330,6 +345,7 @@ namespace Services.Implementations
             result.ApartmentCity = apartment.City;
             result.TotalCount = apartment.NumberOfUsers;
             result.ApartmentPrice = apartment.Price;
+            
             //Get Count in
             var ExistingStudents = _usersApartmentsServices.GetCountStudentsInApartment(ApartmentId);
             result.StudnetExistingIn = ExistingStudents;
@@ -340,9 +356,11 @@ namespace Services.Implementations
             {
                 tempURLS.Add(image.ImageUrl);//null?
             }
-            result.ApartmentsFiles= tempURLS;
-            var Video = _videosService.GetApartmentdVideo(ApartmentId);
-            result.ApartmentsFiles.Add(Video.FirstOrDefault());
+            tempURLS.Add(apartment.CoverImageUrl);
+            result.ApartmentsImages= tempURLS;
+            var Video = _videosService.GetApartmentdVideo(ApartmentId).FirstOrDefault();
+            if(Video!=null)result.ApartmentsVideo=Video;
+            
             //Likes
             var likes = _reactServices.GetApartmentReacts(ApartmentId);
             result.ApartmentLikes = likes;

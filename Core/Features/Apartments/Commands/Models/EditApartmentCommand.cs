@@ -14,7 +14,9 @@ namespace Core.Features.Apartments.Commands.Models
         public string Address { get; set; }
         public int numberOfUsers { get; set; }
         public decimal price { get; set; }
-
+        public int Room { get; set; }
+        public string gender { get; set; }
+        public string City { get; set; }
         public IFormFile CoverImage { get; set; }
 
         public List<IFormFile> Pics { get; set; }

@@ -8,5 +8,6 @@ namespace Services.Abstracts
         List<UserApartmentsRequests> GetOwnerRequests(string ownerId);
         UserApartmentsRequests GetRecord(int id);
         Task<string> DeleteRecord(int id);
+        bool CheckStudentRequestOtherApartment(string userID, int apartmentId);
     }
 }

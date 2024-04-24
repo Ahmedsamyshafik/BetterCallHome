@@ -12,6 +12,8 @@ namespace Core.Features.Apartments.Commands.Models
         public string? Description { get; set; }
         public decimal Price { get; set; }
         public int Room { get; set; }
+        public string City { get; set; }
+        public string Gender { get; set; }  
         public int NumberOfUsers { get; set; }
         public IFormFile RoyalDocument { get; set; }
         public IFormFile? video { get; set; }

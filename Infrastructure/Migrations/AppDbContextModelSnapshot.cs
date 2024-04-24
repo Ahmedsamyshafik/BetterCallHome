@@ -393,10 +393,7 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
 
-                    b.Property<int?>("ApartmentID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ApartmentsID")
+                    b.Property<int>("ApartmentID")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("DateTime")
@@ -694,11 +691,13 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domin.Models.UsersApartments", b =>
                 {
-                    b.HasOne("Domin.Models.Apartment", "Apartment")
+                    b.HasOne("Domin.Models.Apartment", "ApartmentFK")
                         .WithMany("StudentsApartment")
-                        .HasForeignKey("ApartmentID");
+                        .HasForeignKey("ApartmentID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("Apartment");
+                    b.Navigation("ApartmentFK");
                 });
 
             modelBuilder.Entity("Domin.Models.View", b =>

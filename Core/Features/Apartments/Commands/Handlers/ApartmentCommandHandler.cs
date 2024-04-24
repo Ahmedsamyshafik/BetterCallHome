@@ -7,7 +7,6 @@ using Domin.Models;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Services.Abstracts;
-using Services.Implementations;
 
 namespace Core.Features.Apartments.Commands.Handlers
 {
@@ -198,17 +197,11 @@ namespace Core.Features.Apartments.Commands.Handlers
         public async Task<Response<string>> Handle(EditApartmentCommand request, CancellationToken cancellationToken)
         {
             //mapping => Auto mapper!
-            var apaa = new Apartment()
-            {
-                Address = request.Address,
-                Description = request.Description,
-                Name = request.Title,
-                NumberOfUsers = request.numberOfUsers,
-                Price = request.price,
-                Id = request.ApartmentId
-            };
+            //from EditApartmentCommand => Apartment
+            var map = _mapper.Map<Apartment>(request);
+            
             //Service
-            var result = await _apartmentServices.EditApartment(apaa, request.CoverImage, request.Video, request.Pics, request.RequestScheme, request.Requesthost);
+            var result = await _apartmentServices.EditApartment(map, request.CoverImage, request.Video, request.Pics, request.RequestScheme, request.Requesthost);
             if (result == "Success") return Success("");
             return BadRequest<string>(result);
         }
