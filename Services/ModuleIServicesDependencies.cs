@@ -24,6 +24,8 @@ namespace Core
             services.AddScoped<iNotifyServices, NotifyServices>();
             services.AddScoped<IUserApartmentsRequestsService, UserApartmentsRequestsService>();
             services.AddScoped<IUsersApartmentsServices, UsersApartmentsServices>();
+            services.AddScoped<IPaymentService, PaymentService>();
+
 
             return services;
         }

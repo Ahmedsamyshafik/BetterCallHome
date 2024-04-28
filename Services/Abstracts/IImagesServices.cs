@@ -12,5 +12,6 @@ namespace Services.Abstracts
         Task<string> DeleteApartmentCoverImage(int apartmentId);
         Task<string> DeleteApartmentArrayPicsFiles(int apartmentId);
         Task<string> DeleteApartmentArrayPics(int apartmentId);
+        Task<string> DeleteImage(string imageName, string imageFile);
     }
 }

@@ -2,6 +2,7 @@
 using Core.Features.Apartments.Queries.Models;
 using Core.Features.Users.Commands.Models;
 using Core.Features.Users.Commands.Models.ApartmentsRquests;
+using Core.Features.Users.Commands.Models.PaymentRequest;
 using Core.Features.Users.Queries.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -58,11 +59,19 @@ namespace BetterCallHomeWeb.Controllers
         }
 
         [HttpGet("[action]")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetApartmentsMain([FromQuery]GetApartmentPagintation query)
         {
             var response = await Mediator.Send(query);
             return Ok(response);
         }
 
+        [HttpPost("[action]")]
+        public async Task<IActionResult> Payment(FormPaymentCommand command)
+        {
+          
+            var response = await Mediator.Send(command);
+            return Ok(response);
+        }
     }
 }

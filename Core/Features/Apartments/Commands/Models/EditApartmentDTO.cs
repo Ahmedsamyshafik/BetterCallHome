@@ -16,11 +16,12 @@ namespace Core.Features.Apartments.Commands.Models
         public string City { get; set; }
         public decimal price { get; set; }
 
-        public IFormFile CoverImage { get; set; }
+        public IFormFile? NewCoverImage { get; set; }
 
-        public List<IFormFile> Pics { get; set; }
+        public List<string>? ApartmentsImagesUrl { get; set; }
+        public List<IFormFile>? NewPics { get; set; }
 
-        public IFormFile? Video { get; set; }
+        public IFormFile? NewVideo { get; set; }
 
     }
 }

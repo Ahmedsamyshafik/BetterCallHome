@@ -2,9 +2,11 @@
 using Core.Bases;
 using Core.Features.Users.Commands.Models;
 using Core.Features.Users.Commands.Models.ApartmentsRquests;
+using Core.Features.Users.Commands.Models.PaymentRequest;
 using Core.Features.Users.Commands.Results;
 using Domin.Models;
 using Infrastructure.DTO;
+using Infrastructure.DTO.Payment;
 using MediatR;
 using Services.Abstracts;
 
@@ -21,7 +23,8 @@ namespace Core.Features.Users.Commands.Handlers
                     IRequestHandler<ChangePasswordUserCommand, Response<string>>,
                     IRequestHandler<DeleteUserCommand, Response<string>>,
                     IRequestHandler<RequestApartmentStudentCommand, Response<string>>,
-                    IRequestHandler<ActionsRequestedApartmentStudentCommand, Response<string>>
+                    IRequestHandler<ActionsRequestedApartmentStudentCommand, Response<string>>,
+                    IRequestHandler<FormPaymentCommand, Response<string>>
     {
 
         #region Inject
@@ -31,16 +34,19 @@ namespace Core.Features.Users.Commands.Handlers
         private readonly IUserApartmentsRequestsService _requestsService;
         private readonly IApartmentServices _apartmentServices;
         private readonly IUsersApartmentsServices _usersApartmentsServices;
+        private readonly IPaymentService _paymentService;
+
 
 
         public UserCommandHandler(IAuthService auth, IMapper mapper, IUserApartmentsRequestsService requestsService,
-            IApartmentServices apartmentServices, IUsersApartmentsServices usersApartmentsServices)
+            IApartmentServices apartmentServices, IUsersApartmentsServices usersApartmentsServices, IPaymentService paymentService)
         {
             _auth = auth;
             _mapper = mapper;
             _requestsService = requestsService;
             _apartmentServices = apartmentServices;
             _usersApartmentsServices = usersApartmentsServices;
+            _paymentService = paymentService;
         }
         #endregion
 
@@ -190,6 +196,23 @@ namespace Core.Features.Users.Commands.Handlers
             await _requestsService.DeleteRecord(request.id); //counter of assiging and do it forloop
             //return response
             return Success("");
+        }
+
+        public async Task<Response<string>> Handle(FormPaymentCommand request, CancellationToken cancellationToken)
+        {
+            // mapping
+            var paramter = _mapper.Map<FormViewModel>(request);
+            //user Property
+            var user = await _auth.GetUserById(request.UserID);
+            paramter.first_name = user.UserName;
+            paramter.last_name = user.UserName;
+            paramter.phone_number = user.PhoneNumber;
+            paramter.email = user.Email;
+            //Service
+            var response = await _paymentService.Index(paramter);
+            //return
+            if (response == "Faild") { return BadRequest<string>("Faild"); }
+            return Success(response);
         }
 
 

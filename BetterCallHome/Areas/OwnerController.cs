@@ -16,6 +16,7 @@ namespace BetterCallHomeWeb.Areas
     public class OwnerController : AppControllerBase
     {
 
+
         [HttpPost("[action]")]
         [Authorize(Roles = Constants.OwnerRole)]
         public async Task<IActionResult> AddApartment([FromForm] AddApartmentDTO command)
@@ -110,17 +111,18 @@ namespace BetterCallHomeWeb.Areas
         [Authorize(Roles = Constants.OwnerRole)]
         public async Task<IActionResult> EditApartment([FromForm] EditApartmentDTO DTO)
         {
-            //User Token !! id !
+            //User Token !! id ! //{Mapper}
             var command = new EditApartmentCommand()
             {
                 price = DTO.price,
                 Address = DTO.Address,
                 ApartmentId = DTO.ApartmentId,
-                CoverImage = DTO.CoverImage,
+                NewCoverImage = DTO.NewCoverImage,
                 Description = DTO.Description,
                 numberOfUsers = DTO.numberOfUsers,
-                Pics = DTO.Pics,
-                Video = DTO.Video,
+                NewPics = DTO.NewPics,
+                ApartmentsImagesUrl = DTO.ApartmentsImagesUrl,
+                NewVideo = DTO.NewVideo,
                 Title = DTO.Title,
                 gender = DTO.gender,
                 City = DTO.City,

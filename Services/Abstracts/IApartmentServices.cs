@@ -23,7 +23,7 @@ namespace Services.Abstracts
         IQueryable<GetPendingApartmentsForOwnerPaginationDTO> getpaginateForOwner(string ownerID, string? search);
         Task<string> AssingStudnetsToApartment(int apartmentId);
         Task<string> EditApartment(Apartment apartment, IFormFile? CoverImage, IFormFile? Video, List<IFormFile>? Pics,
-            string requestSchema, HostString host);
+           List<string> ApartmentsImagesUrl, string requestSchema, HostString host);
 
         IQueryable<GetApartmentPagintationResponse> getApartmentspaginate(string? search, string? city, string? gender,
          int countIn, decimal? min, decimal? max);

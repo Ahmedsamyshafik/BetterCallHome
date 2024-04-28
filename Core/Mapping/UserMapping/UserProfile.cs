@@ -19,6 +19,7 @@ namespace Core.Mapping.UserMapping
             RequestApartmentStudentCommandToUserApartment();
 
             UserRequestsToApartmentRequestsResponse();
+            PaymentMapping();
 
         }
     }

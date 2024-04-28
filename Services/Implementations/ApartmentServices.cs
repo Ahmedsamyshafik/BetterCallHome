@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Services.Abstracts;
+using System.Linq;
 using System.Reflection.Metadata;
 
 namespace Services.Implementations
@@ -104,7 +105,7 @@ namespace Services.Implementations
 
         public List<Apartment> GetApartmentsTopRateForLandingPage()
         {
-            return _apartmentRepository.GetTableNoTracking().OrderByDescending(x=>x.Likes).Take(3).ToList();
+            return _apartmentRepository.GetTableNoTracking().OrderByDescending(x => x.Likes).Take(3).ToList();
         }
 
 
@@ -215,8 +216,10 @@ namespace Services.Implementations
             return "";
         }
 
+
+
         public async Task<string> EditApartment(Apartment apartment, IFormFile? CoverImage, IFormFile? Video, List<IFormFile>? Pics,
-            string requestSchema, HostString host)
+       List<string> ApartmentsImagesUrl, string requestSchema, HostString host)
         {
             var DBApartment = await _apartmentRepository.GetByIdAsync(apartment.Id);
             DBApartment.Address = apartment.Address;
@@ -225,17 +228,30 @@ namespace Services.Implementations
             DBApartment.Price = apartment.Price;
             DBApartment.Name = apartment.Name;
             DBApartment.NumberOfUsers = apartment.NumberOfUsers;
-            //images-videos
+            //-------images-videos-------
+            //Delete Old 
+            if (ApartmentsImagesUrl != null)
+            {
+                var dbApartmentImages = _imagesService.GetApartmentImgs(apartment.Id);
+
+                // Get Only url as <string>
+                List<string> DBUrlimages = dbApartmentImages.Select(image => image.ImageUrl).ToList();
+               
+
+                var OldImages = DBUrlimages.Except(ApartmentsImagesUrl).ToList();
+            
+
+                //Delete Old 
+                foreach (var pic in OldImages)
+                {
+                    var image = GetImageInfoFromUrl(pic);
+                    await _imagesService.DeleteImage(image.FileName, image.DirectoryName);
+                }
+            }
+            //Add New
             if (Pics != null)
             {
-                //Delete Old ///////HERE !!
-                await _imagesService.DeleteApartmentArrayPicsFiles(apartment.Id);
-                await _imagesService.DeleteApartmentArrayPics(apartment.Id);
-                //
-
-
-                // await _imagesService.DeleteApartmentPics(apartment.Id);
-                //Saving New 
+               
                 foreach (var p in Pics)
                 {
                     //Save New
@@ -246,7 +262,6 @@ namespace Services.Implementations
                         return "Faild in  images";
                     }
                 }
-
             }
 
             //CoverImage
@@ -345,22 +360,22 @@ namespace Services.Implementations
             result.ApartmentCity = apartment.City;
             result.TotalCount = apartment.NumberOfUsers;
             result.ApartmentPrice = apartment.Price;
-            
+
             //Get Count in
             var ExistingStudents = _usersApartmentsServices.GetCountStudentsInApartment(ApartmentId);
             result.StudnetExistingIn = ExistingStudents;
             //Get Apartment Files
             var images = _imagesService.GetApartmentImgs(ApartmentId); // Cover Image?
-            List<string> tempURLS= new List<string>();
+            List<string> tempURLS = new List<string>();
             foreach (var image in images)
             {
                 tempURLS.Add(image.ImageUrl);//null?
             }
             tempURLS.Add(apartment.CoverImageUrl);
-            result.ApartmentsImages= tempURLS;
+            result.ApartmentsImages = tempURLS;
             var Video = _videosService.GetApartmentdVideo(ApartmentId).FirstOrDefault();
-            if(Video!=null)result.ApartmentsVideo=Video;
-            
+            if (Video != null) result.ApartmentsVideo = Video;
+
             //Likes
             var likes = _reactServices.GetApartmentReacts(ApartmentId);
             result.ApartmentLikes = likes;
@@ -372,7 +387,7 @@ namespace Services.Implementations
             result.OwnerApartmentCount = GetOwnerApartments(user.Id).Count();
             //Comments
             var comments = _commentServices.GetApartmentComment(apartment.Id);
-            result.ApartmentComments =await HandleApartmentComments(comments);
+            result.ApartmentComments = await HandleApartmentComments(comments);
             return result;
 
         }
@@ -397,6 +412,34 @@ namespace Services.Implementations
                 result.Add(temp);
             }
             return result;
+        }
+
+        private ImageInfo GetImageInfoFromUrl(string imageUrl)
+        {
+            Uri uri;
+            try
+            {
+                uri = new Uri(imageUrl);
+            }
+            catch (UriFormatException ex)
+            {
+                Console.WriteLine($"Invalid URL format: {ex.Message}");
+                return null;
+            }
+
+            string fileName = System.IO.Path.GetFileName(uri.LocalPath);
+            string directoryName = uri.Segments.Length >= 2 ? uri.Segments[1].TrimEnd('/') : "";
+
+            return new ImageInfo
+            {
+                FileName = fileName,
+                DirectoryName = directoryName
+            };
+        }
+        public class ImageInfo
+        {
+            public string FileName { get; set; }
+            public string DirectoryName { get; set; }
         }
         #endregion
 

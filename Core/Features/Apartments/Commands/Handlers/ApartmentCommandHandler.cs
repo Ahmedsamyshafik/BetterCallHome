@@ -196,12 +196,12 @@ namespace Core.Features.Apartments.Commands.Handlers
 
         public async Task<Response<string>> Handle(EditApartmentCommand request, CancellationToken cancellationToken)
         {
-            //mapping => Auto mapper!
+            //mapping 
             //from EditApartmentCommand => Apartment
             var map = _mapper.Map<Apartment>(request);
-            
+
             //Service
-            var result = await _apartmentServices.EditApartment(map, request.CoverImage, request.Video, request.Pics, request.RequestScheme, request.Requesthost);
+            var result = await _apartmentServices.EditApartment(map, request.NewCoverImage, request.NewVideo, request.NewPics, request.ApartmentsImagesUrl, request.RequestScheme, request.Requesthost);
             if (result == "Success") return Success("");
             return BadRequest<string>(result);
         }
